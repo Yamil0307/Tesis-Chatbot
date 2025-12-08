@@ -5,13 +5,11 @@ ESTRUCTURA DEL PROYECTO - Tesis Agentic RAG
 # ✅ ETAPAS COMPLETADAS
 
 ## Etapa 0: Refactorización Estructural ✅
-
 - Módulos centralizados (rag_manager, metadata_handler, ingest_utils)
 - Lazy loading de embeddings
 - Código limpio y modular
 
 ## Etapa 1: Memoria Conversacional ✅ NUEVA
-
 - SqliteSaver para persistencia
 - Thread_id para sesiones
 - Historial que crece correctamente
@@ -46,7 +44,7 @@ ESTRUCTURA DEL PROYECTO - Tesis Agentic RAG
    - Persistencia en checkpoints.db
    - Thread management
 
-4. rag_manager.py
+3. rag_manager.py
 
    - Gestor centralizado de RAG
    - Carga y manejo de FAISS
