@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Agentic RAG - Tesis UO</title>
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1>Agente RAG - Sala Fondos Raros UO</h1>
+            <p>Estado: <span id="api-status">Conectando...</span></p>
+        </header>
+
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">
+                ¡Hola! Soy el Agente RAG. Pregúntame sobre tus documentos cargados.
+            </div>
+        </div>
+        
+        <form class="chat-input" id="chat-form">
+            <input type="text" id="user-input" placeholder="Escribe tu pregunta..." required>
+            <button type="submit" id="send-button">Enviar</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
