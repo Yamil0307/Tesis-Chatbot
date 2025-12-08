@@ -21,6 +21,7 @@ from ingest_utils import (
     load_embeddings,
     split_documents,
     add_chunk_metadata,
+    add_document_summary,
     validate_file
 )
 
@@ -78,16 +79,20 @@ class PDFIngestor:
         documents: List[Document],
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
-        add_metadata: bool = True
+        add_metadata: bool = True,
+        add_summaries: bool = True
     ) -> Optional[List[Document]]:
         """
-        Procesa documentos (fragmenta y agrega metadatos).
+        Procesa documentos (fragmenta, agrega metadatos y resúmenes).
+        
+        **ETAPA 2: Mejora de Ingestión - Resúmenes automáticos**
         
         Args:
             documents (List[Document]): Documentos cargados
             chunk_size (int): Tamaño de fragmento
             chunk_overlap (int): Superposición
             add_metadata (bool): Si agregar metadatos de chunk_index
+            add_summaries (bool): Si generar resúmenes automáticos
             
         Returns:
             Optional[List[Document]]: Documentos procesados
@@ -99,6 +104,10 @@ class PDFIngestor:
             # Agregar metadatos de chunk
             if add_metadata:
                 texts = add_chunk_metadata(texts)
+            
+            # **NUEVO: Agregar resúmenes para mejorar contexto**
+            if add_summaries:
+                texts = add_document_summary(texts, use_ai_summary=True)
             
             return texts
             
@@ -163,8 +172,12 @@ class PDFIngestor:
         Realiza:
         1. Carga del PDF
         2. Fragmentación y procesamiento
-        3. Creación de vectorstore
-        4. Guardado en disco
+        3. Generación de resúmenes automáticos (NUEVO)
+        4. Creación de vectorstore
+        5. Guardado en disco
+        
+        **ETAPA 2: Mejora de Ingestión - Resúmenes automáticos**
+        Los resúmenes mejoran la búsqueda al proporcionar contexto de alto nivel.
         
         Args:
             pdf_path (str): Ruta del PDF
@@ -183,7 +196,7 @@ class PDFIngestor:
         if not documents:
             return False
         
-        # Paso 2: Procesar documentos
+        # Paso 2: Procesar documentos (fragmentar, metadatos, resúmenes)
         processed_docs = self.process_documents(documents, chunk_size, chunk_overlap)
         if not processed_docs:
             return False
@@ -222,7 +235,7 @@ def ingest_pdf_simple(
 if __name__ == "__main__":
     print("\n=== Prueba de PDF Ingestor ===\n")
     
-    pdf_path = "./data/documento_tesis.pdf"
+    pdf_path = "./data/info_prueba.pdf"
     
     # Crear ingestor
     ingestor = PDFIngestor()

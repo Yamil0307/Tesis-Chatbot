@@ -16,7 +16,7 @@ from ingest_pdf import ingest_pdf_simple
 load_dotenv()
 
 # Rutas
-PDF_PATH = "./data/documento_tesis.pdf"
+PDF_PATH = "./data/info_prueba.pdf"
 DB_FAISS_PATH = "vectorstore_faiss"
 
 
