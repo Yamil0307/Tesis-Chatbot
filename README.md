@@ -2,6 +2,22 @@
 ESTRUCTURA DEL PROYECTO - Tesis Agentic RAG
 ============================================
 
+# ✅ ETAPAS COMPLETADAS
+
+## Etapa 0: Refactorización Estructural ✅
+- Módulos centralizados (rag_manager, metadata_handler, ingest_utils)
+- Lazy loading de embeddings
+- Código limpio y modular
+
+## Etapa 1: Memoria Conversacional ✅ NUEVA
+- SqliteSaver para persistencia
+- Thread_id para sesiones
+- Historial que crece correctamente
+- LLM recibe contexto completo
+- localStorage para recuperación
+
+---
+
 # ARCHIVOS PRINCIPALES (CRÍTICOS - NO ELIMINAR)
 
 1. main.py
@@ -10,6 +26,7 @@ ESTRUCTURA DEL PROYECTO - Tesis Agentic RAG
    - Endpoint POST /chat para consultas
    - Manejo de CORS
    - Punto de entrada del servidor
+   - ✅ NUEVO: Soporta thread_id para memoria
 
 2. agent_brain.py
 
@@ -17,6 +34,15 @@ ESTRUCTURA DEL PROYECTO - Tesis Agentic RAG
    - Definición de nodos y rutas
    - Herramienta search_university_history
    - Compilación del grafo
+   - ✅ NUEVO: Compilado con SqliteSaver checkpointer
+   - ✅ NUEVO: generate_response() agrega al historial
+
+3. memory_manager.py ✅ NUEVO
+
+   - Gestor de sesiones con SqliteSaver
+   - Recuperación de estado anterior (get_last_state)
+   - Persistencia en checkpoints.db
+   - Thread management
 
 3. rag_manager.py
 
