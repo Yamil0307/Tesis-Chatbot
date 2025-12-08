@@ -27,6 +27,13 @@ llm = ChatGoogleGenerativeAI(model="gemini-robotics-er-1.5-preview", temperature
 def search_university_history(query: str) -> str:
     """Busca y recupera información relevante sobre la Universidad de Oriente, su historia, 
     reglamentos o documentos académicos de la Sala de Fondos Raros y Valiosos.
+    
+    **ETAPA 2.2: Incluye metadatos de fuentes en el contexto**
+    
+    Retorna:
+    - Contexto: Fragmentos relevantes de los documentos
+    - Fuentes: Lista de documentos consultados con páginas
+    
     Úsala solo si necesitas información factual o histórica."""
     
     # Obtener el RAG Manager SOLO cuando se necesita (lazy initialization)
@@ -35,14 +42,21 @@ def search_university_history(query: str) -> str:
     # Realiza la búsqueda usando el RAG Manager
     docs = rag_mgr.search(query, k=4)
     
-    # Formatea el contexto
+    # Si no encuentra nada, devuelve un mensaje específico
+    if not docs:
+        return "No se encontró información relevante en los documentos de la universidad."
+    
+    # Formatea el contexto CON anotaciones de fuente
     context = rag_mgr.format_context(docs)
     
-    # Si no encuentra nada, devuelve un mensaje específico
-    if not context:
-        return "No se encontró información relevante en los documentos de la universidad."
-        
-    return f"Contexto recuperado de la universidad: {context}"
+    # **NUEVO: Extraer lista de fuentes para que el LLM las cite**
+    sources_list = MetadataHandler.format_source_list(docs)
+    
+    # Combinar contexto + fuentes en un formato que el LLM entienda
+    full_context = f"{context}{sources_list}"
+    
+    return f"Contexto recuperado de la universidad:\n{full_context}"
+
 
 # Agrupamos todas las herramientas disponibles (solo tenemos una por ahora)
 tools = [search_university_history]
@@ -91,13 +105,26 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
             conversation_history += f"{role}: {msg.content}\n"
         conversation_history += "--- FIN DEL HISTORIAL ---\n\n"
     
-    # Definimos la instrucción final para la respuesta
+    # **ETAPA 2.3: Sistema prompt mejorado con instrucciones de citación**
     system_prompt = (
         "Eres un chatbot experto en la historia y reglamentos de la Universidad de Oriente (Santiago de Cuba). "
-        "Tu misión es responder las preguntas del usuario de forma precisa y profesional. "
-        "Utiliza EXCLUSIVAMENTE el siguiente contexto recuperado de los documentos de la universidad (si existe) para formular tu respuesta. "
-        "Si el contexto está vacío o no es relevante, responde de forma educada que no tienes la información disponible en tu base de datos."
-        f"\n\n{conversation_history}"
+        "Tu misión es responder las preguntas del usuario de forma precisa y profesional, "
+        "citando adecuadamente los documentos consultados.\n\n"
+        
+        "INSTRUCCIONES CRÍTICAS DE CITACIÓN (ETAPA 2):\n"
+        "1. Basa tu respuesta EN EL CONTEXTO de los documentos proporcionados\n"
+        "2. Al FINAL de tu respuesta, SIEMPRE incluye una sección: FUENTES CONSULTADAS:\n"
+        "3. Formato de cada fuente: '- [Nombre del Documento] (página X)'\n"
+        "4. Si el contexto está vacío o no es relevante, escribe: '- (Conocimiento general)'\n"
+        "5. Evita duplicados exactos en la lista de fuentes\n\n"
+        
+        "EJEMPLO DE RESPUESTA CORRECTA:\n"
+        "Respuesta: 'La Universidad de Oriente fue fundada en 1968...'\n\n"
+        "FUENTES CONSULTADAS:\n"
+        "- Historia de la Universidad (página 42)\n"
+        "- Estatutos Fundamentales (página 15)\n\n"
+        
+        f"{conversation_history}"
         "--- CONTEXTO DE LOS DOCUMENTOS ---\n"
         f"{context}"
     )

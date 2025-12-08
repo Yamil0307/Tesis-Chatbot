@@ -115,3 +115,60 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* ============== ETAPA 2.4: ESTILOS PARA FUENTES ACADÉMICAS ============== */
+
+.sources-section {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #0056b3;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.sources-section h4 {
+    margin: 0 0 10px 0;
+    color: #0056b3;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.sources-list {
+    margin: 0;
+    padding-left: 24px;
+    list-style-type: none;
+}
+
+.sources-list li {
+    margin: 6px 0;
+    color: #444;
+    padding-left: 0;
+    position: relative;
+    line-height: 1.4;
+}
+
+.sources-list li::before {
+    content: "📄";
+    position: absolute;
+    left: -24px;
+    top: 0;
+}
+
+.general-knowledge {
+    margin: 0;
+    color: #666;
+    font-style: italic;
+    padding: 8px 0;
+}
+
+/* Asegurar que las fuentes se vean bien dentro de mensajes del bot */
+.bot-message .sources-section {
+    background-color: #ffffff;
+    border-left-color: #007bff;
+    margin-top: 12px;
+}
+
+.bot-message .sources-section h4 {
+    color: #007bff;
+}

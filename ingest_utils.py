@@ -10,6 +10,7 @@ Este módulo contiene funciones auxiliares reutilizables para:
 
 import os
 from typing import Dict, List
+from datetime import datetime
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -94,29 +95,64 @@ def add_chunk_metadata(
     source_name: str = "desconocido"
 ) -> List[Document]:
     """
-    Agrega metadatos de fragmento a los documentos.
+    Agrega metadatos completos a los documentos para citación académica.
     
-    Prepara los documentos para la Etapa 2 (Citación de Fuentes).
+    **ETAPA 2.1: Enriquecer metadatos**
+    
+    Agrega los siguientes metadatos a cada fragmento:
+    - chunk_index: Índice secuencial del fragmento
+    - source: Ruta original del archivo
+    - file_name: Nombre del archivo (sin ruta)
+    - processed_date: Fecha/hora de procesamiento
+    - page: Número de página (del metadata original)
+    
+    Estos metadatos permiten generar citaciones académicas como:
+    "- Historia de la Universidad (página 42)"
     
     Args:
         documents (List[Document]): Documentos a actualizar
         source_name (str): Nombre de la fuente (para identificar fragmentos)
         
     Returns:
-        List[Document]: Documentos con metadatos actualizados
+        List[Document]: Documentos con metadatos enriquecidos
     """
+    processed_date = datetime.now().isoformat()
+    
     for idx, doc in enumerate(documents):
         if not hasattr(doc, 'metadata') or doc.metadata is None:
             doc.metadata = {}
         
-        # Agregar índice de fragmento
+        # 1. AGREGAR ÍNDICE DE FRAGMENTO
         doc.metadata["chunk_index"] = idx
         
-        # Si no tiene fuente, agregarla
+        # 2. AGREGAR FUENTE SI NO EXISTE
         if "source" not in doc.metadata:
             doc.metadata["source"] = source_name
+        
+        # 3. EXTRAER NOMBRE DE ARCHIVO (sin ruta)
+        source_path = doc.metadata.get("source", "")
+        if source_path:
+            file_name = os.path.basename(source_path)
+            # Remover extensión si es muy larga
+            if len(file_name) > 50:
+                file_name = file_name[:47] + "..."
+            doc.metadata["file_name"] = file_name
+        else:
+            doc.metadata["file_name"] = "Documento sin nombre"
+        
+        # 4. AGREGAR FECHA DE PROCESAMIENTO
+        doc.metadata["processed_date"] = processed_date
+        
+        # 5. ASEGURAR QUE EXISTE "page" (PyPDFLoader lo agrega automáticamente)
+        if "page" not in doc.metadata:
+            doc.metadata["page"] = 0
     
-    print(f"   ✅ Agregados metadatos a {len(documents)} fragmentos")
+    print(f"   ✅ Metadatos enriquecidos en {len(documents)} fragmentos")
+    print(f"      - file_name: ✅")
+    print(f"      - page: ✅")
+    print(f"      - chunk_index: ✅")
+    print(f"      - processed_date: ✅")
+    
     return documents
 
 

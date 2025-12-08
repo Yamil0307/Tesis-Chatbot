@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentThreadId = null;
 
   // Función de utilidad para agregar un mensaje al contenedor
+  // **ETAPA 2.4: Mejorada para parsear y mostrar fuentes académicas**
   function addMessage(text, sender, isRag = false) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message");
@@ -20,17 +21,53 @@ document.addEventListener("DOMContentLoaded", () => {
       sender === "user" ? "user-message" : "bot-message"
     );
 
-    let content = text.replace(/\n/g, "<br>");
+    if (sender === "bot") {
+      // **ETAPA 2.4: Parsear respuesta para separar contenido de fuentes**
+      const parts = text.split("FUENTES CONSULTADAS:");
+      const responseText = parts[0].trim();
+      const sourcesText = parts[1] ? parts[1].trim() : null;
 
-    if (sender === "bot" && isRag) {
-      // Indicador de RAG
-      content += `<div class="rag-active">Fuente: Documentos de la UO (RAG)</div>`;
-    } else if (sender === "bot") {
-      // Indicador de conocimiento general
-      content += `<div class="rag-active">Fuente: Conocimiento General (Gemini)</div>`;
+      // Formatear respuesta principal
+      let content = responseText.replace(/\n/g, "<br>");
+
+      // Agregar sección de fuentes si existen
+      if (sourcesText) {
+        // Parsear líneas de fuentes (formato: "- [Documento] (página X)")
+        const sourceLines = sourcesText
+          .split("\n")
+          .filter(line => line.trim().startsWith("-"))
+          .map(line => line.trim());
+
+        content += `
+          <div class="sources-section">
+            <h4>📚 FUENTES CONSULTADAS:</h4>
+            <ul class="sources-list">
+              ${sourceLines
+                .map(source => {
+                  // Remover el guion inicial
+                  const cleanSource = source.substring(1).trim();
+                  return `<li>${cleanSource}</li>`;
+                })
+                .join("")}
+            </ul>
+          </div>
+        `;
+      } else {
+        // Si no hay fuentes, indicar que es conocimiento general
+        content += `
+          <div class="sources-section">
+            <p class="general-knowledge">📖 Respuesta basada en conocimiento general</p>
+          </div>
+        `;
+      }
+
+      messageDiv.innerHTML = content;
+    } else {
+      // Mensaje del usuario sin procesar
+      let content = text.replace(/\n/g, "<br>");
+      messageDiv.innerHTML = content;
     }
 
-    messageDiv.innerHTML = content;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll automático
   }

@@ -29,28 +29,38 @@ class MetadataHandler:
         """
         Extrae información de fuente de un documento LangChain.
         
+        **ETAPA 2.1: Extraer información completa de metadatos**
+        
         Args:
             doc (Document): Documento con metadatos
             
         Returns:
-            Dict[str, Any]: Diccionario con información de fuente:
-                - source: Nombre del archivo
+            Dict[str, Any]: Diccionario con información de fuente completa:
+                - source: Ruta original del archivo
+                - file_name: Nombre del archivo (sin ruta)
                 - page: Número de página
-                - chunk_index: Índice del fragmento (si existe)
+                - chunk_index: Índice del fragmento
+                - processed_date: Cuándo se procesó
         """
         if not hasattr(doc, 'metadata') or not doc.metadata:
             return {
                 "source": "Desconocido",
+                "file_name": None,
                 "page": None,
-                "chunk_index": None
+                "chunk_index": None,
+                "processed_date": None,
+                "title": None,
+                "author": None,
             }
         
         metadata = doc.metadata
         
         return {
             "source": metadata.get("source", "Desconocido"),
+            "file_name": metadata.get("file_name"),  # ← Nuevo en Etapa 2.1
             "page": metadata.get("page"),
             "chunk_index": metadata.get("chunk_index"),
+            "processed_date": metadata.get("processed_date"),  # ← Nuevo en Etapa 2.1
             # Otros metadatos disponibles
             "title": metadata.get("title"),
             "author": metadata.get("author"),
@@ -63,26 +73,34 @@ class MetadataHandler:
         """
         Formatea una cita académica a partir de metadatos.
         
-        Ejemplo:
-            "El principito (pp. 54-55)"
-            "Documento desconocido"
+        **ETAPA 2.2: Formato académico para citaciones**
+        
+        Genera citaciones en formato:
+        - "Historia de la Universidad (página 42)"
+        - "Reglamento Académico"
+        - "Documento desconocido"
         
         Args:
             source_info (Dict[str, Any]): Información de fuente extraída
             
         Returns:
-            str: Cita formateada
+            str: Cita formateada para Etapa 2
         """
-        source = source_info.get("source", "Desconocido")
+        file_name = source_info.get("file_name", "Documento desconocido")
         page = source_info.get("page")
-        title = source_info.get("title")
         
-        # Si tenemos título, usarlo; si no, usar nombre del archivo
-        display_name = title if title else source.split("/")[-1]
+        # Limpiar nombre de archivo
+        if file_name and file_name != "Documento desconocido":
+            # Remover extensión .pdf si existe
+            display_name = file_name.replace(".pdf", "").replace(".txt", "")
+            # Capitalizar correctamente
+            display_name = " ".join(word.capitalize() for word in display_name.split("_"))
+        else:
+            display_name = "Documento desconocido"
         
-        # Construir la cita
-        if page is not None:
-            return f"{display_name} (p. {page})"
+        # Construir la cita en formato académico
+        if page is not None and page != "None":
+            return f"{display_name} (página {page})"
         else:
             return display_name
     
@@ -91,51 +109,66 @@ class MetadataHandler:
         """
         Formatea una lista de documentos como fuentes citadas.
         
+        **ETAPA 2.2: Lista de fuentes en formato académico**
+        
         Ejemplo de salida:
-            "📄 FUENTES:
-            - El principito (p. 54)
-            - Reglamento Docente (pp. 23-24)"
+        ```
+        FUENTES CONSULTADAS:
+        - Historia de la Universidad (página 54)
+        - Reglamento Docente (página 23)
+        ```
         
         Args:
             docs (List[Document]): Lista de documentos recuperados
             
         Returns:
-            str: Lista de fuentes formateada para el usuario
+            str: Lista de fuentes formateada para académico
         """
         if not docs:
-            return ""
+            return "FUENTES CONSULTADAS:\n- (Conocimiento general)"
         
-        handler = MetadataHandler()
-        sources = set()  # Para evitar duplicados
+        sources = []  # Lista para preservar orden y permitir duplicados controlados
+        seen = set()  # Para detectar duplicados exactos
         
         for doc in docs:
-            source_info = handler.extract_source_info(doc)
-            citation = handler.format_source_citation(source_info)
-            sources.add(citation)
+            source_info = MetadataHandler.extract_source_info(doc)
+            citation = MetadataHandler.format_source_citation(source_info)
+            
+            # Evitar duplicados exactos
+            if citation not in seen:
+                sources.append(citation)
+                seen.add(citation)
         
         if not sources:
-            return ""
+            sources = ["(Conocimiento general)"]
         
-        sources_str = "\n".join([f"  - {source}" for source in sorted(sources)])
-        return f"\n\n📄 FUENTES:\n{sources_str}"
+        # Formato académico
+        sources_text = "\n".join([f"- {source}" for source in sources])
+        return f"\nFUENTES CONSULTADAS:\n{sources_text}"
     
     @staticmethod
     def create_source_annotation(doc: Document) -> str:
         """
-        Crea una anotación de fuente para un fragmento individual.
+        Crea una anotación de fuente para marcar fragmentos.
         
-        Útil para marcar fragmentos en el contexto.
+        Útil para que el LLM vea claramente de dónde viene cada fragmento.
+        
+        Ejemplo: "[Fuente: Historia de la Universidad, página 23]"
         
         Args:
             doc (Document): Documento individual
             
         Returns:
-            str: Anotación de fuente (ejemplo: "[Fuente: Documento, p. 23]")
+            str: Anotación de fuente formateada
         """
-        handler = MetadataHandler()
-        source_info = handler.extract_source_info(doc)
-        citation = handler.format_source_citation(source_info)
-        return f"[Fuente: {citation}]"
+        source_info = MetadataHandler.extract_source_info(doc)
+        file_name = source_info.get("file_name", "Desconocido")
+        page = source_info.get("page")
+        
+        if page is not None and page != "None":
+            return f"[Fuente: {file_name}, página {page}]"
+        else:
+            return f"[Fuente: {file_name}]"
     
     @staticmethod
     def format_context_with_annotations(docs: List[Document]) -> str:
