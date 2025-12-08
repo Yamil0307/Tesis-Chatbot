@@ -9,6 +9,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 # --- IMPORTAR GESTORES CENTRALIZADOS ---
 from rag_manager import get_rag_manager
 from metadata_handler import MetadataHandler
+from memory_manager import get_memory_manager
 
 # --- 1. CONFIGURACIÓN INICIAL ---
 load_dotenv()
@@ -18,7 +19,7 @@ load_dotenv()
 
 # El modelo LLM (Gemini para desarrollo)
 # Usaremos el modelo que ya probaste con éxito: gemini-2.0-flash
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.5)
+llm = ChatGoogleGenerativeAI(model="gemini-robotics-er-1.5-preview", temperature=0.5)
 
 # --- 2. DEFINICIÓN DE LA HERRAMIENTA ---
 
@@ -79,6 +80,16 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
     
     context = state["context"]
     input_message = state["input"]
+    current_chat_history = state["chat_history"]  # ← Obtener historial actual
+    
+    # Construir el historial de conversación para el LLM
+    conversation_history = ""
+    if current_chat_history:
+        conversation_history = "\n--- HISTORIAL DE CONVERSACIÓN ANTERIOR ---\n"
+        for i, msg in enumerate(current_chat_history):
+            role = "Usuario" if hasattr(msg, '__class__') and msg.__class__.__name__ == 'HumanMessage' else "Asistente"
+            conversation_history += f"{role}: {msg.content}\n"
+        conversation_history += "--- FIN DEL HISTORIAL ---\n\n"
     
     # Definimos la instrucción final para la respuesta
     system_prompt = (
@@ -86,15 +97,25 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
         "Tu misión es responder las preguntas del usuario de forma precisa y profesional. "
         "Utiliza EXCLUSIVAMENTE el siguiente contexto recuperado de los documentos de la universidad (si existe) para formular tu respuesta. "
         "Si el contexto está vacío o no es relevante, responde de forma educada que no tienes la información disponible en tu base de datos."
-        "\n\n--- CONTEXTO DE LOS DOCUMENTOS ---"
-        f"\n{context}"
+        f"\n\n{conversation_history}"
+        "--- CONTEXTO DE LOS DOCUMENTOS ---\n"
+        f"{context}"
     )
 
-    # Creamos la cadena final: Instrucción + Pregunta
+    # CRÍTICO: Pasar TODO el historial + nuevo input al LLM
+    messages = current_chat_history + [HumanMessage(content=input_message)]
     response_chain = llm.bind(system=system_prompt)
-    final_response = response_chain.invoke([HumanMessage(content=input_message)])
+    final_response = response_chain.invoke(messages)
 
-    return {"chat_history": [AIMessage(content=final_response.content)]}
+    # CRÍTICO: AGREGAR a chat_history, no reemplazar
+    # Agregar el mensaje del usuario + la respuesta del asistente
+    new_messages = [
+        HumanMessage(content=input_message),
+        AIMessage(content=final_response.content)
+    ]
+    updated_chat_history = current_chat_history + new_messages
+    
+    return {"chat_history": updated_chat_history}
 
 # Nodo C: Lógica de Herramientas (El Despachador)
 def execute_tool(state: AgentState) -> Dict[str, Any]:
@@ -160,8 +181,10 @@ workflow.add_edge("call_tool", "respond")
 # Define el final de la conversación (Todo termina respondiendo)
 workflow.add_edge("respond", END)
 
-# Compila el flujo de trabajo
-app = workflow.compile()
+# Compila el flujo de trabajo CON SqliteSaver para persistencia
+memory_mgr = get_memory_manager()
+saver = memory_mgr.get_saver()
+app = workflow.compile(checkpointer=saver)
 
 # --- 8. FUNCIÓN DE PRUEBA ---
 

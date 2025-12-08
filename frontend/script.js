@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // URL de tu API de FastAPI
   const API_URL = "http://127.0.0.1:8000/chat";
 
+  // NUEVO: Variable para guardar el thread_id de la sesión actual
+  let currentThreadId = null;
+
   // Función de utilidad para agregar un mensaje al contenedor
   function addMessage(text, sender, isRag = false) {
     const messageDiv = document.createElement("div");
@@ -65,6 +68,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   checkApiStatus();
 
+  // NUEVO: Cargar thread_id del localStorage al iniciar (para recuperar sesión anterior)
+  function loadSessionId() {
+    currentThreadId = localStorage.getItem("threadId");
+    if (currentThreadId) {
+      console.log(`📝 Sesión recuperada: ${currentThreadId}`);
+      // NO mostrar mensaje automático - la sesión se recupera silenciosamente
+    }
+  }
+
+  // NUEVO: Guardar thread_id en localStorage
+  function saveSessionId(threadId) {
+    currentThreadId = threadId;
+    localStorage.setItem("threadId", threadId);
+    console.log(`💾 Sesión guardada: ${threadId}`);
+  }
+
+  loadSessionId();
+
   // Evento principal que maneja el envío del formulario y la comunicación con FastAPI
   chatForm.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -81,13 +102,21 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_input: message }),
+        body: JSON.stringify({
+          user_input: message,
+          thread_id: currentThreadId, // ← NUEVO: Incluir thread_id en la solicitud
+        }),
       });
 
       const data = await response.json();
 
+      // NUEVO: Guardar el thread_id de la respuesta (si es la primera solicitud)
+      if (data.thread_id && !currentThreadId) {
+        saveSessionId(data.thread_id);
+      }
+
       if (data.status === "success") {
-        addMessage(data.response, "bot", data.agent_used_rag);
+        addMessage(data.response, "bot", data.agent_used_tool);
       } else {
         addMessage(`❌ Error del Agente: ${data.response}`, "bot");
       }
