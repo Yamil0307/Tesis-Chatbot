@@ -35,15 +35,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // Parsear líneas de fuentes (formato: "- [Documento] (página X)")
         const sourceLines = sourcesText
           .split("\n")
-          .filter(line => line.trim().startsWith("-"))
-          .map(line => line.trim());
+          .filter((line) => line.trim().startsWith("-"))
+          .map((line) => line.trim());
 
         content += `
           <div class="sources-section">
             <h4>📚 FUENTES CONSULTADAS:</h4>
             <ul class="sources-list">
               ${sourceLines
-                .map(source => {
+                .map((source) => {
                   // Remover el guion inicial
                   const cleanSource = source.substring(1).trim();
                   return `<li>${cleanSource}</li>`;
