@@ -42,12 +42,17 @@ def contextualize_query(state: AgentState) -> Dict[str, Any]:
     if not chat_history:
         return {"search_query": user_input}
 
-    # Prompt para reescritura
+    # Prompt para reescritura - más agresivo con contexto
     history_str = "\n".join([f"{'User' if isinstance(m, HumanMessage) else 'AI'}: {m.content}" for m in chat_history[-4:]])
     
     prompt_rewrite = f"""
-    Eres una herramienta de reformulación de búsqueda.
-    Tu trabajo es reescribir la "PREGUNTA ACTUAL" para que sea totalmente independiente, basándote en el HISTORIAL.
+    Eres una herramienta de reformulación de búsqueda para documentos académicos.
+    Tu trabajo es reescribir la "PREGUNTA ACTUAL" para que sea totalmente independiente y específica, basándote en el HISTORIAL.
+    
+    INSTRUCCIONES ESPECIALES:
+    - Si la pregunta menciona "tutores", "directores" o "autores", asegúrate de incluir el nombre del documento o persona del contexto.
+    - Haz la pregunta lo más específica y clara posible para una búsqueda en base de datos.
+    - Evita palabras vagas como "esto", "eso", "ella", "él".
     
     HISTORIAL:
     {history_str}
@@ -73,20 +78,28 @@ def run_agent(state: AgentState) -> Dict[str, Any]:
     query_to_search = state.get("search_query", state["input"])
     rag_mgr = get_rag_manager()
     
-    # K=25: Suficiente para capturar portada y contenido, sin saturar a Gemma 4B
-    print(f"🚀 Buscando '{query_to_search}' con K=25...")
-    docs = rag_mgr.search(query_to_search, k=25)
+    # K=40: Aumentamos para asegurar que capturamos portadas completas
+    # especialmente cuando buscamos información formal como "tutores"
+    print(f"🚀 Buscando '{query_to_search}' con K=40...")
+    docs = rag_mgr.search(query_to_search, k=40)
     
     if not docs:
         context = "[SIN RESULTADOS]"
     else:
-        # --- TRUCO MAESTRO: ORDENAR POR PÁGINA ---
-        # Ordenamos los documentos para que la Página 1, 2, 3 aparezcan PRIMERO.
-        # Esto ayuda al modelo a ver los "Datos Formales" antes que los "Agradecimientos".
+        # --- TRUCO MAESTRO: ORDENAR Y FILTRAR POR PÁGINA ---
+        # 1. Ordenamos por página para que páginas 1-5 aparezcan primero
+        # 2. Priorizamos fuertemente las primeras páginas (donde está la portada)
         docs.sort(key=lambda x: x.metadata.get('page', 999))
         
-        context_text = rag_mgr.format_context(docs)
-        sources_list = MetadataHandler.format_source_list(docs)
+        # Separamos documentos de portada (pág 1-5) y otros
+        portada_docs = [d for d in docs if d.metadata.get('page', 999) <= 5]
+        otros_docs = [d for d in docs if d.metadata.get('page', 999) > 5]
+        
+        # Reconstruimos con portada al frente, pero limitando para no saturar
+        docs_ordenados = portada_docs[:15] + otros_docs[:15]
+        
+        context_text = rag_mgr.format_context(docs_ordenados)
+        sources_list = MetadataHandler.format_source_list(docs_ordenados)
         context = f"{context_text}\n\n{sources_list}"
     
     return {"context": context}
@@ -106,21 +119,42 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
             ]
         }
 
-    # PROMPT DISEÑADO PARA GEMMA Y DATOS ACADÉMICOS
+    # PROMPT DISEÑADO PARA INFORMACIÓN HISTÓRICA DE LA UNIVERSIDAD DE ORIENTE
     system_prompt = f"""
-    Eres un AUDITOR DE DOCUMENTOS ACADÉMICOS. Tu única fuente de verdad es el CONTEXTO proporcionado.
+    Eres un ESPECIALISTA EN INFORMACIÓN HISTÓRICA DE LA UNIVERSIDAD DE ORIENTE. Tu única fuente de verdad es el CONTEXTO proporcionado de libros y documentos históricos de la UO.
     
-    INSTRUCCIONES CRÍTICAS SOBRE "TUTORES" Y "AUTORES":
-    1. **LA PORTADA MANDA:** Busca nombres de Tutores, Autores o Títulos SIEMPRE en los fragmentos de las primeras páginas (Pág 1, 2).
-    2. **IGNORA AGRADECIMIENTOS:** Es muy común que en la sección "Agradecimientos" o "Dedicatoria" se mencione a profesores. **ESO NO SON LOS TUTORES OFICIALES**. Ignora cualquier nombre que aparezca bajo "Agradezco a...", "Dedicado a...".
-    3. **BUSCA ETIQUETAS:** Busca explícitamente las palabras "Tutor:", "Tutores:", "Director:", "Trabajo de Diploma", "Autor:".
+    OBJETIVO PRINCIPAL:
+    Responder consultas sobre información histórica, académica y administrativa de la Universidad de Oriente basándote EXCLUSIVAMENTE en los documentos proporcionados.
     
-    REGLAS GENERALES:
-    - Si no encuentras el dato exacto, di "No se especifica en el documento".
-    - No uses conocimiento externo.
-    - Cita el fragmento donde encontraste el dato (Ej: [1]).
+    INSTRUCCIONES CRÍTICAS PARA BÚSQUEDA EN PORTADAS:
+    **LAS PORTADAS SON LA FUENTE PRIMARIA.** Busca PRIMERO en fragmentos de páginas 1-5 (normalmente marcadas como "Pág 1", "Pág 2", etc.)
     
-    CONTEXTO (ORDENADO POR PÁGINA):
+    INFORMACIÓN EN PORTADAS TÍPICAMENTE INCLUYE:
+    - Título de la tesis/documento
+    - Autor(es) - busca palabras: "por", "autor", "presentado por"
+    - Tutores/Directores - busca palabras: "Tutor:", "Tutores:", "Director:", "Dirigida por", "Bajo la dirección de"
+    - Institución: Universidad de Oriente
+    - Departamento/Facultad
+    - Año académico
+    
+    ESTRATEGIA DE BÚSQUEDA:
+    1. **ESCANEA PRIMERO PÁGINAS 1-5:** Son los fragmentos más importantes. La información que busques DEBE estar aquí.
+    2. **RECONOCE FORMATOS TÍPICOS:** En portadas formales la información suele estar:
+       - Centro de la página
+       - Con títulos en mayúsculas o negrita
+       - En secciones claramente identificadas
+    3. **FILTRA SECCIONES NO FORMALES:** Ignora "Agradecimientos", "Dedicatoria", opiniones personales, anécdotas.
+    4. **SI NO ESTÁ EN PORTADA, NO EXISTE:** Si la información que busca no aparece en fragmentos de pág 1-5, entonces no se encuentra en los documentos.
+    
+    REGLAS PARA RESPUESTAS:
+    - Responde SOLO con información exacta encontrada en el contexto, especialmente en portadas.
+    - Si encuentras datos en múltiples lugares, prefiere la información de la portada/primeras páginas.
+    - Si la información NO está disponible, responde: "Esta información no se encuentra disponible en los documentos de la Universidad de Oriente proporcionados."
+    - NUNCA hagas suposiciones, inferencias o uses conocimiento externo.
+    - Mantén respuestas directas, breves y verificables.
+    - **IMPORTANTE:** NO incluyas números entre corchetes [1], [2], [3], etc. en tu respuesta final.
+    
+    CONTEXTO (DOCUMENTOS DE LA UNIVERSIDAD DE ORIENTE, PRIORIZADOS POR PÁGINA):
     {context}
     
     PREGUNTA:
