@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message");
     messageDiv.classList.add(
-      sender === "user" ? "user-message" : "bot-message"
+      sender === "user" ? "user-message" : "bot-message",
     );
 
     if (sender === "bot") {
@@ -89,8 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Comprobación de la conexión inicial (opcional pero profesional)
   async function checkApiStatus() {
     try {
-      // Intentamos conectar al endpoint /chat, pero solo para verificar si está vivo
-      const response = await fetch("http://127.0.0.1:8000", { method: "GET" });
+      // Ahora conectamos al endpoint de health check (GET /)
+      const response = await fetch("http://127.0.0.1:8000/", { method: "GET" });
       if (response.ok) {
         apiStatusSpan.textContent = "Conectado";
         apiStatusSpan.style.color = "#28a745";
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error al comunicarse con la API:", error);
       addMessage(
         "❌ Error de conexión. Asegúrate de que FastAPI esté corriendo en http://127.0.0.1:8000.",
-        "bot"
+        "bot",
       );
     } finally {
       toggleLoading(false);

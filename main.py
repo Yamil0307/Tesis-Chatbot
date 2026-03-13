@@ -34,12 +34,20 @@ app_fastapi.add_middleware(
 
 
 # --- 3. MODELO DE DATOS (Lo que envía el usuario) ---
+
+from fastapi import Response
 from typing import Optional
 
 class ChatRequest(BaseModel):
     """Modelo de la solicitud de chat."""
     user_input: str
     thread_id: Optional[str] = None  # ← NUEVO: ID de sesión para memoria persistente
+
+
+# --- 3.5 ENDPOINT DE SALUD (Health Check) ---
+@app_fastapi.get("/")
+def health_check():
+    return {"status": "ok"}
 
 # --- 4. RUTA PRINCIPAL DE CHAT ---
 
