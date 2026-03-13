@@ -60,115 +60,221 @@ body {
 }
 .bot-message {
     background-color: #e2e6ea;
-    color: #333;
-    margin-right: auto;
-    border-bottom-left-radius: 5px;
-}
-.rag-active {
-    font-style: italic;
-    color: #4a4a4a;
-    border-top: 1px solid #c9c9c9;
-    padding-top: 5px;
-    margin-top: 5px;
-}
 
-/* Input y Botón */
-.chat-input {
-    padding: 15px;
-    display: flex;
-    background-color: #f9f9f9;
-}
-.chat-input input[type="text"] {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    margin-right: 10px;
-    font-size: 16px;
-}
-.chat-input button {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.chat-input button:hover:not(:disabled) {
-    background-color: #218838;
-}
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(120deg, #e3f0ff 0%, #f9fbe7 100%);
+        margin: 0;
+        padding: 0;
+    }
 
-/* Spinner de carga */
-.spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    animation: spin 1s linear infinite;
-}
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+    .container {
+        max-width: 420px;
+        margin: 48px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(25, 118, 210, 0.10);
+        padding: 32px 28px 36px 28px;
+        position: relative;
+    }
 
-/* ============== ETAPA 2.4: ESTILOS PARA FUENTES ACADÉMICAS ============== */
+    h1 {
+        text-align: center;
+        color: #1976d2;
+        margin-bottom: 18px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
 
-.sources-section {
-    margin-top: 15px;
-    padding: 12px;
-    background-color: #f8f9fa;
-    border-left: 4px solid #0056b3;
-    border-radius: 4px;
-    font-size: 0.85em;
-}
+    /* --- Auth UI --- */
+    #auth-container {
+        margin-bottom: 18px;
+    }
+    #auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    #auth-form input {
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #bdbdbd;
+        font-size: 1em;
+        background: #f7faff;
+        transition: border 0.2s;
+    }
+    #auth-form input:focus {
+        border: 1.5px solid #1976d2;
+        outline: none;
+    }
+    #auth-submit {
+        padding: 10px 0;
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    #auth-submit:disabled {
+        background: #90caf9;
+        cursor: not-allowed;
+    }
+    #auth-message {
+        color: #d32f2f;
+        font-size: 0.98em;
+        min-height: 18px;
+        margin-top: -6px;
+        margin-bottom: 2px;
+    }
+    #auth-title {
+        text-align: center;
+        color: #1976d2;
+        margin-bottom: 8px;
+        font-size: 1.25em;
+        font-weight: 600;
+    }
+    #auth-toggle-text {
+        text-align: center;
+        font-size: 0.98em;
+        margin-top: 2px;
+    }
+    #auth-toggle-text a {
+        color: #1976d2;
+        text-decoration: underline;
+        cursor: pointer;
+    }
 
-.sources-section h4 {
-    margin: 0 0 10px 0;
-    color: #0056b3;
-    font-weight: 600;
-    font-size: 0.95em;
-}
+    /* --- User info & logout --- */
+    #user-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #e3f2fd;
+        border-radius: 6px;
+        padding: 8px 14px;
+        margin-bottom: 12px;
+        font-size: 1.05em;
+    }
+    #user-welcome {
+        color: #1976d2;
+        font-weight: 600;
+    }
+    #logout-btn {
+        background: #d32f2f;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 0.98em;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
+    #logout-btn:hover {
+        background: #b71c1c;
+    }
 
-.sources-list {
-    margin: 0;
-    padding-left: 24px;
-    list-style-type: none;
-}
+    /* --- Chat UI --- */
+    #chat-messages {
+        min-height: 260px;
+        max-height: 320px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 16px 10px 16px 16px;
+        background: #fafbfc;
+        margin-bottom: 16px;
+        font-size: 1.04em;
+    }
+    .message {
+        margin-bottom: 13px;
+        padding: 10px 14px;
+        border-radius: 7px;
+        line-height: 1.6;
+        word-break: break-word;
+        box-shadow: 0 1px 2px rgba(25, 118, 210, 0.04);
+    }
+    .user-message {
+        background: #e3f2fd;
+        align-self: flex-end;
+        text-align: right;
+        border-bottom-right-radius: 2px;
+    }
+    .bot-message {
+        background: #f1f8e9;
+        align-self: flex-start;
+        text-align: left;
+        border-bottom-left-radius: 2px;
+    }
 
-.sources-list li {
-    margin: 6px 0;
-    color: #444;
-    padding-left: 0;
-    position: relative;
-    line-height: 1.4;
-}
+    #chat-form {
+        display: flex;
+        gap: 10px;
+    }
+    #user-input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #bdbdbd;
+        font-size: 1em;
+        background: #f7faff;
+        transition: border 0.2s;
+    }
+    #user-input:focus {
+        border: 1.5px solid #1976d2;
+        outline: none;
+    }
+    #send-button {
+        padding: 10px 18px;
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    #send-button:disabled {
+        background: #90caf9;
+        cursor: not-allowed;
+    }
 
-.sources-list li::before {
-    content: "📄";
-    position: absolute;
-    left: -24px;
-    top: 0;
-}
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #1976d2;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 
-.general-knowledge {
-    margin: 0;
-    color: #666;
-    font-style: italic;
-    padding: 8px 0;
-}
+    .sources-section {
+        margin-top: 10px;
+        background: #f9fbe7;
+        border-left: 4px solid #cddc39;
+        padding: 8px 12px;
+        border-radius: 4px;
+    }
+    .sources-list {
+        margin: 0;
+        padding-left: 18px;
+    }
+    .general-knowledge {
+        color: #888;
+        font-size: 0.95em;
+    }
 
-/* Asegurar que las fuentes se vean bien dentro de mensajes del bot */
-.bot-message .sources-section {
-    background-color: #ffffff;
-    border-left-color: #007bff;
-    margin-top: 12px;
-}
-
-.bot-message .sources-section h4 {
-    color: #007bff;
-}
+    #api-status {
+        font-size: 0.97em;
+        margin-left: 8px;
+        font-weight: 500;
+    }

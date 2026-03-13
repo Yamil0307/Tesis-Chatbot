@@ -1,30 +1,66 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chatbot Agentic RAG - Tesis UO</title>
-    <link rel="stylesheet" href="styles.css"> 
-</head>
-<body>
-    <div class="chat-container">
-        <header class="chat-header">
-            <h1>Agente RAG - Sala Fondos Raros UO</h1>
-            <p>Estado: <span id="api-status">Conectando...</span></p>
-        </header>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Contenedor de login/registro -->
+    <div class="auth-container" id="auth-container">
+      <h2 id="auth-title">Iniciar sesión</h2>
+      <form id="auth-form">
+        <input type="text" id="auth-username" placeholder="Usuario" required />
+        <input
+          type="email"
+          id="auth-email"
+          placeholder="Correo"
+          style="display: none"
+        />
+        <input
+          type="password"
+          id="auth-password"
+          placeholder="Contraseña"
+          required
+        />
+        <button type="submit" id="auth-submit">Entrar</button>
+      </form>
+      <p id="auth-toggle-text">
+        ¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>
+      </p>
+      <p id="auth-message"></p>
+    </div>
 
-        <div class="chat-messages" id="chat-messages">
-            <div class="message bot-message">
-                ¡Hola! Soy el Agente RAG. Pregúntame sobre tus documentos cargados.
-            </div>
+    <!-- Contenedor de usuario autenticado y logout -->
+    <div class="user-info" id="user-info" style="display: none">
+      <span id="user-welcome"></span>
+      <button id="logout-btn">Cerrar sesión</button>
+    </div>
+
+    <!-- Contenedor de chat (oculto hasta login) -->
+    <div class="chat-container" id="chat-container" style="display: none">
+      <header class="chat-header">
+        <h1>Agente RAG - Sala Fondos Raros UO</h1>
+        <p>Estado: <span id="api-status">Conectando...</span></p>
+      </header>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="message bot-message">
+          ¡Hola! Soy el Agente RAG. Pregúntame sobre tus documentos cargados.
         </div>
-        
-        <form class="chat-input" id="chat-form">
-            <input type="text" id="user-input" placeholder="Escribe tu pregunta..." required>
-            <button type="submit" id="send-button">Enviar</button>
-        </form>
+      </div>
+      <form class="chat-input" id="chat-form">
+        <input
+          type="text"
+          id="user-input"
+          placeholder="Escribe tu pregunta..."
+          required
+        />
+        <button type="submit" id="send-button">Enviar</button>
+      </form>
     </div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
