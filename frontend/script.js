@@ -162,32 +162,112 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Chat ---
-  function addMessage(text, sender, isRag = false) {
+  // --- addMessage ÚNICA: SIEMPRE separa y renderiza fuentes como dropdown ---
+  function addMessage(text, sender) {
+    // Buscar el marcador de fuentes (con o sin ###, y aunque esté pegado al mensaje)
+    let cuerpo = text;
+    let fuentes = "";
+    // Regex: busca '### FUENTES CONSULTADAS:' o 'FUENTES CONSULTADAS:' (al inicio de línea o tras salto de línea)
+    const fuentesRegex = /(?:^|\n)\s*#*\s*FUENTES CONSULTADAS:/i;
+    const match = fuentesRegex.exec(text);
+    if (match) {
+      const idx = match.index;
+      cuerpo = text.slice(0, idx).trim();
+      fuentes = text
+        .slice(idx)
+        .replace(/^\s*#*\s*FUENTES CONSULTADAS:/i, "")
+        .trim();
+    }
+
+    // Renderizar mensaje principal
     const messageDiv = document.createElement("div");
-    messageDiv.classList.add("message");
     messageDiv.classList.add(
+      "message",
       sender === "user" ? "user-message" : "bot-message",
     );
-    if (sender === "bot") {
-      const parts = text.split("FUENTES CONSULTADAS:");
-      const responseText = parts[0].trim();
-      const sourcesText = parts[1] ? parts[1].trim() : null;
-      let content = responseText.replace(/\n/g, "<br>");
-      if (sourcesText) {
-        const sourceLines = sourcesText
-          .split("\n")
-          .filter((line) => line.trim().startsWith("-"))
-          .map((line) => line.trim());
-        content += `<div class="sources-section"><h4>📚 FUENTES CONSULTADAS:</h4><ul class="sources-list">${sourceLines.map((source) => `<li>${source.substring(1).trim()}</li>`).join("")}</ul></div>`;
-      } else {
-        content += `<div class="sources-section"><p class="general-knowledge">📖 Respuesta basada en conocimiento general</p></div>`;
-      }
-      messageDiv.innerHTML = content;
-    } else {
-      let content = text.replace(/\n/g, "<br>");
-      messageDiv.innerHTML = content;
-    }
+    messageDiv.innerHTML = cuerpo.replace(/\n/g, "<br>");
     chatMessages.appendChild(messageDiv);
+
+    // Renderizar fuentes como <details>
+    if (fuentes) {
+      const details = document.createElement("details");
+      details.className = "sources-dropdown";
+      const summary = document.createElement("summary");
+      summary.textContent = "📚 Fuentes consultadas";
+      details.appendChild(summary);
+
+      // Parsear cada fuente (una por línea)
+      fuentes.split("\n").forEach((line) => {
+        const match = line.match(/- \[(.+?)\] \(página (\d+)\):\s*"(.*)"/);
+        if (match) {
+          const [, archivo, pagina, fragmento] = match;
+          const fuenteDiv = document.createElement("div");
+          fuenteDiv.className = "fuente-item";
+          fuenteDiv.innerHTML = `<strong>${archivo}</strong> (pág. ${pagina}):<br><span class=\"fuente-fragmento\">\"${fragmento}\"</span>`;
+          details.appendChild(fuenteDiv);
+        } else if (line.trim()) {
+          // Si no matchea formato, mostrar como texto plano
+          const fuenteDiv = document.createElement("div");
+          fuenteDiv.className = "fuente-item";
+          fuenteDiv.textContent = line;
+          details.appendChild(fuenteDiv);
+        }
+      });
+
+      chatMessages.appendChild(details);
+    }
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  function addMessage(text, sender) {
+    // Separar cuerpo y fuentes
+    const fuentesMarker = "### FUENTES CONSULTADAS:";
+    let cuerpo = text;
+    let fuentes = "";
+    if (text.includes(fuentesMarker)) {
+      [cuerpo, fuentes] = text.split(fuentesMarker);
+      cuerpo = cuerpo.trim();
+      fuentes = fuentes.trim();
+    }
+
+    // Renderizar mensaje principal
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add(
+      "message",
+      sender === "user" ? "user-message" : "bot-message",
+    );
+    messageDiv.innerHTML = cuerpo.replace(/\n/g, "<br>");
+    chatMessages.appendChild(messageDiv);
+
+    // Renderizar fuentes como <details>
+    if (fuentes) {
+      const details = document.createElement("details");
+      details.className = "sources-dropdown";
+      const summary = document.createElement("summary");
+      summary.textContent = "📚 Fuentes consultadas";
+      details.appendChild(summary);
+
+      // Parsear cada fuente (una por línea)
+      fuentes.split("\n").forEach((line) => {
+        const match = line.match(/- \[(.+?)\] \(página (\d+)\):\s*"(.*)"/);
+        if (match) {
+          const [, archivo, pagina, fragmento] = match;
+          const fuenteDiv = document.createElement("div");
+          fuenteDiv.className = "fuente-item";
+          fuenteDiv.innerHTML = `<strong>${archivo}</strong> (pág. ${pagina}):<br><span class="fuente-fragmento">\"${fragmento}\"</span>`;
+          details.appendChild(fuenteDiv);
+        } else if (line.trim()) {
+          // Si no matchea formato, mostrar como texto plano
+          const fuenteDiv = document.createElement("div");
+          fuenteDiv.className = "fuente-item";
+          fuenteDiv.textContent = line;
+          details.appendChild(fuenteDiv);
+        }
+      });
+
+      chatMessages.appendChild(details);
+    }
+
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   function toggleLoading(isLoading) {

@@ -1,3 +1,36 @@
+/* --- Dropdown de fuentes consultadas --- */
+.sources-dropdown {
+    margin-top: 12px;
+    background: #f9fbe7;
+    border-left: 4px solid #1976d2;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 0.97em;
+    box-shadow: 0 1px 4px rgba(25, 118, 210, 0.06);
+}
+.sources-dropdown summary {
+    font-weight: 600;
+    color: #1976d2;
+    cursor: pointer;
+    outline: none;
+    font-size: 1em;
+    margin-bottom: 6px;
+}
+.fuente-item {
+    margin: 8px 0 8px 12px;
+    padding: 6px 10px;
+    background: #fffde7;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    font-size: 0.95em;
+}
+.fuente-fragmento {
+    color: #333;
+    font-style: italic;
+}
+.sources-dropdown[open] {
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+}
 /* Generales */
 body {
     font-family: Arial, sans-serif;
@@ -43,6 +76,7 @@ body {
     padding: 20px;
     overflow-y: auto;
     border-bottom: 1px solid #ddd;
+    max-height: calc(100% - 120px); /* Ajustar según el diseño */
 }
 .message {
     margin-bottom: 15px;
@@ -273,8 +307,69 @@ body {
         font-size: 0.95em;
     }
 
+    /* --- FUENTES CONSULTADAS --- */
+    .sources-section {
+        background-color: #f9f9f9;
+        border-left: 4px solid #007bff;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+    }
+    .sources-section h4 {
+        margin: 0 0 5px 0;
+        font-size: 0.9em;
+        color: #007bff;
+    }
+    .sources-section ul {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 0.85em;
+    }
+    .sources-section li {
+        margin-bottom: 5px;
+    }
+
+    /* --- FUENTES CONSULTADAS CON FRAGMENTOS --- */
+    .sources-section {
+        background-color: #f9f9f9;
+        border-left: 4px solid #007bff;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+    }
+    .sources-section h4 {
+        margin: 0 0 5px 0;
+        font-size: 0.9em;
+        color: #007bff;
+    }
+    .citation-item {
+        margin-bottom: 10px;
+    }
+    .citation-header {
+        cursor: pointer;
+        font-size: 0.85em;
+        color: #0056b3;
+        text-decoration: underline;
+    }
+    .citation-content {
+        margin-top: 5px;
+        padding-left: 10px;
+        font-size: 0.8em;
+        color: #333;
+    }
+    .citation-content.hidden {
+        display: none;
+    }
+
+    /* --- Scroll automático --- */
+    .chat-messages {
+        overflow-y: auto;
+        max-height: calc(100% - 120px); /* Ajustar según el diseño */
+    }
+
     #api-status {
         font-size: 0.97em;
         margin-left: 8px;
         font-weight: 500;
     }
+}

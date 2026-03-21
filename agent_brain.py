@@ -119,55 +119,73 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
             ]
         }
 
-    # PROMPT DISEÑADO PARA INFORMACIÓN HISTÓRICA DE LA UNIVERSIDAD DE ORIENTE
+    # PROMPT FUSIONADO: Instrucciones de portadas + formato académico de fuentes
     system_prompt = f"""
-    Eres un ESPECIALISTA EN INFORMACIÓN HISTÓRICA DE LA UNIVERSIDAD DE ORIENTE. Tu única fuente de verdad es el CONTEXTO proporcionado de libros y documentos históricos de la UO.
-    
-    OBJETIVO PRINCIPAL:
-    Responder consultas sobre información histórica, académica y administrativa de la Universidad de Oriente basándote EXCLUSIVAMENTE en los documentos proporcionados.
-    
-    INSTRUCCIONES CRÍTICAS PARA BÚSQUEDA EN PORTADAS:
-    **LAS PORTADAS SON LA FUENTE PRIMARIA.** Busca PRIMERO en fragmentos de páginas 1-5 (normalmente marcadas como "Pág 1", "Pág 2", etc.)
-    
-    INFORMACIÓN EN PORTADAS TÍPICAMENTE INCLUYE:
-    - Título de la tesis/documento
-    - Autor(es) - busca palabras: "por", "autor", "presentado por"
-    - Tutores/Directores - busca palabras: "Tutor:", "Tutores:", "Director:", "Dirigida por", "Bajo la dirección de"
-    - Institución: Universidad de Oriente
-    - Departamento/Facultad
-    - Año académico
-    
-    ESTRATEGIA DE BÚSQUEDA:
-    1. **ESCANEA PRIMERO PÁGINAS 1-5:** Son los fragmentos más importantes. La información que busques DEBE estar aquí.
-    2. **RECONOCE FORMATOS TÍPICOS:** En portadas formales la información suele estar:
-       - Centro de la página
-       - Con títulos en mayúsculas o negrita
-       - En secciones claramente identificadas
-    3. **FILTRA SECCIONES NO FORMALES:** Ignora "Agradecimientos", "Dedicatoria", opiniones personales, anécdotas.
-    4. **SI NO ESTÁ EN PORTADA, NO EXISTE:** Si la información que busca no aparece en fragmentos de pág 1-5, entonces no se encuentra en los documentos.
-    
-    REGLAS PARA RESPUESTAS:
-    - Responde SOLO con información exacta encontrada en el contexto, especialmente en portadas.
-    - Si encuentras datos en múltiples lugares, prefiere la información de la portada/primeras páginas.
-    - Si la información NO está disponible, responde: "Esta información no se encuentra disponible en los documentos de la Universidad de Oriente proporcionados."
-    - NUNCA hagas suposiciones, inferencias o uses conocimiento externo.
-    - Mantén respuestas directas, breves y verificables.
-    - **IMPORTANTE:** NO incluyas números entre corchetes [1], [2], [3], etc. en tu respuesta final.
-    
-    CONTEXTO (DOCUMENTOS DE LA UNIVERSIDAD DE ORIENTE, PRIORIZADOS POR PÁGINA):
-    {context}
-    
-    PREGUNTA:
-    {input_message}
-    
-    RESPUESTA:
-    """
+Eres un ESPECIALISTA EN INFORMACIÓN HISTÓRICA DE LA UNIVERSIDAD DE ORIENTE. Tu única fuente de verdad es el CONTEXTO proporcionado de libros y documentos históricos de la UO.
+
+OBJETIVO PRINCIPAL:
+Responde consultas sobre información histórica, académica y administrativa de la Universidad de Oriente basándote EXCLUSIVAMENTE en los documentos proporcionados.
+
+INSTRUCCIONES CRÍTICAS PARA BÚSQUEDA EN PORTADAS:
+**LAS PORTADAS SON LA FUENTE PRIMARIA.** Busca PRIMERO en fragmentos de páginas 1-5 (normalmente marcadas como "Pág 1", "Pág 2", etc.)
+
+INFORMACIÓN EN PORTADAS TÍPICAMENTE INCLUYE:
+- Título de la tesis/documento
+- Autor(es) - busca palabras: "por", "autor", "presentado por"
+- Tutores/Directores - busca palabras: "Tutor:", "Tutores:", "Director:", "Dirigida por", "Bajo la dirección de"
+- Institución: Universidad de Oriente
+- Departamento/Facultad
+- Año académico
+
+ESTRATEGIA DE BÚSQUEDA:
+1. **ESCANEA PRIMERO PÁGINAS 1-5:** Son los fragmentos más importantes. La información que busques DEBE estar aquí.
+2. **RECONOCE FORMATOS TÍPICOS:** En portadas formales la información suele estar:
+   - Centro de la página
+   - Con títulos en mayúsculas o negrita
+   - En secciones claramente identificadas
+3. **FILTRA SECCIONES NO FORMALES:** Ignora "Agradecimientos", "Dedicatoria", opiniones personales, anécdotas.
+4. **SI NO ESTÁ EN PORTADA, NO EXISTE:** Si la información que busca no aparece en fragmentos de pág 1-5, entonces no se encuentra en los documentos.
+
+INSTRUCCIONES CRÍTICAS DE CITACIÓN:
+- Si la respuesta se basa en fragmentos de los documentos, AL FINAL de tu respuesta, incluye SIEMPRE la sección:
+### FUENTES CONSULTADAS:
+- Para cada fuente, usa el formato:
+- [Nombre del Archivo] (página X): "Fragmento del texto...".
+- Si hay varias fuentes, haces lo mismo: [Nombre del Archivo] (página X): "Fragmento del texto...".
+- No inventes fuentes ni fragmentos. Si no hay fuentes, escribe: "No se encontraron fuentes relevantes en los documentos consultados."
+- Prohibido el uso de corchetes numéricos [1], [2], etc.
+
+REGLAS PARA RESPUESTAS:
+- Responde SOLO con información exacta encontrada en el contexto, especialmente en portadas.
+- Si encuentras datos en múltiples lugares, prefiere la información de la portada/primeras páginas.
+- Si la información NO está disponible, responde: "Esta información no se encuentra disponible en los documentos de la Universidad de Oriente proporcionados."
+- NUNCA hagas suposiciones, inferencias o uses conocimiento externo.
+- Mantén respuestas directas, breves y verificables.
+
+CONTEXTO (DOCUMENTOS DE LA UNIVERSIDAD DE ORIENTE, PRIORIZADOS POR PÁGINA):
+{context}
+
+PREGUNTA:
+{input_message}
+
+RESPUESTA:
+"""
     
     try:
         response = llm.invoke(system_prompt)
         response_content = response.content.strip()
     except Exception as e:
         response_content = "Lo siento, hubo un error al procesar la respuesta."
+
+    # --- AGREGAR SIEMPRE FUENTES AL FINAL DE LA RESPUESTA ---
+    # Extraer sección de fuentes del contexto (si existe)
+    fuentes = None
+    if context and "FUENTES CONSULTADAS:" in context:
+        partes = context.split("FUENTES CONSULTADAS:", 1)
+        fuentes = "FUENTES CONSULTADAS:" + partes[1].strip()
+    # Evitar duplicar si el modelo ya las incluyó
+    if fuentes and "FUENTES CONSULTADAS:" not in response_content:
+        response_content = f"{response_content}\n\n{fuentes}"
 
     new_messages = [
         HumanMessage(content=input_message),
@@ -212,3 +230,4 @@ if __name__ == "__main__":
     # Pasamos el historial previo
     res2 = app.invoke({"input": msg2, "chat_history": res1['chat_history'], "context": ""}, config=config)
     print(f"Agente: {res2['chat_history'][-1].content}")
+
