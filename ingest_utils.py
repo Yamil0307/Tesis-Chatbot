@@ -295,6 +295,14 @@ def validate_file(file_path: str, file_type: str = "PDF") -> bool:
         print(f"❌ Error: No se encuentra el archivo en {file_path}")
         return False
     
+    # Soporte para imágenes
+    if file_type.upper() in ["IMG", "IMAGE"]:
+        valid_exts = [".jpg", ".jpeg", ".png", ".tiff", ".tif"]
+        if not any(file_path.lower().endswith(ext) for ext in valid_exts):
+            print(f"❌ Error: Se esperaba una imagen con extensión {', '.join(valid_exts)}")
+            return False
+        return True
+    
     if not file_path.lower().endswith(file_type.lower()):
         print(f"❌ Error: Se esperaba un archivo .{file_type.lower()}")
         return False
