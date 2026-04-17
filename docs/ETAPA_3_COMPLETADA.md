@@ -150,6 +150,38 @@ def create_vector_db():
 
 ---
 
+## 📂 MODO CARPETA (NUEVO)
+
+### Archivo: `ingest_ocr_folder.py`
+
+Permite procesar todas las imágenes de una carpeta en lugar de una por una.
+
+```python
+# Uso desde CLI
+python ingest_ocr_folder.py data/imagenes/
+```
+
+### Características
+
+| Feature | Descripción |
+|---------|-------------|
+| **Auto-detección** | Encuentra todas las imágenes en la carpeta |
+| **Agregar** | Agrega al vectorstore existente |
+| **Crear** | Crea nuevo si no existe |
+| **Resumen** | Muestra estadísticas del proceso |
+
+### Extensiones soportadas
+- JPG, JPEG, PNG, TIFF, TIF, BMP, GIF, WEBP
+
+### Ejemplo de uso
+
+```bash
+python ingest_ocr_folder.py ./mis_documentos
+python ingest_ocr_folder.py "C:\documentos escaneados"
+```
+
+---
+
 ## ✅ RESULTADOS LOGRADOS
 
 - ✅ Soporte para imágenes (JPG, PNG)
@@ -157,6 +189,7 @@ def create_vector_db():
 - ✅ Metadatos enriquecidos
 - ✅ Integración con FAISS
 - ✅ Resúmenes automáticos
+- ✅ Procesamiento por carpeta
 
 ---
 

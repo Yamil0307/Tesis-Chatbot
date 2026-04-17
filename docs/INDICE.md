@@ -45,7 +45,7 @@ Desarrollar un chatbot conversacional basado en metodologías Agentic RAG para p
 | `ETAPA_2_CORRECCIONES_INICIALES.md` | Correcciones iniciales |
 | `ETAPA_2_ANTI_ALUCINACION.md` | Sistema anti-alucinación |
 | `ETAPA_2_MEJORA_INGESTION.md` | Resúmenes automáticos |
-| `ETAPA_3_COMPLETADA.md` | OCR avanzado (Mistral) |
+| `ETAPA_3_COMPLETADA.md` | OCR avanzado (Mistral) + carpeta |
 | `ETAPA_5_COMPLETADA.md` | Sistema multi-usuario |
 
 ### Etapas Pendientes

@@ -137,8 +137,8 @@
 ## 📚 BASE DE CONOCIMIENTO
 
 **Archivos cargados en FAISS**:
-- `data/info_prueba.pdf`
-- `data/documento_tesis.pdf`
+- PDFs: `data/info_prueba.pdf`, `data/documento_tesis.pdf`
+- Imágenes OCR: `ingest_ocr.py` (una imagen) o `ingest_ocr_folder.py` (carpeta)
 
 **Metadatos por chunk**:
 - source (ruta del archivo)
@@ -240,6 +240,39 @@
 
 ## 📁 ESTRUCTURA DE ARCHIVOS
 
+```
+Tesis_Agentic_RAG/
+├── main.py                      # FastAPI entry point
+├── agent_brain.py               # Agent LangGraph
+├── rag_manager.py              # FAISS + RAG
+├── memory_manager.py           # Persistencia
+├── auth_manager.py            # Autenticación JWT
+├── metadata_handler.py         # Citas académicas
+├── ingest_pdf.py               # Ingestión de PDFs
+├── ingest_ocr.py              # OCR (una imagen)
+├── ingest_ocr_folder.py       # OCR (carpeta) ← NUEVO
+├── ingest_data.py             # Script de ingestión
+├── ingest_utils.py            # Utilidades
+├── frontend/
+│   ├── index.html
+│   ├── script.js
+│   └── styles.css
+├── docs/
+│   ├── INDICE.md
+│   ├── ESTADO_PROYECTO.md
+│   ├── ETAPA_0_COMPLETADA.md
+│   ├── ETAPA_1_COMPLETADA.md
+│   ├── ETAPA_2_*.md
+│   ├── ETAPA_3_COMPLETADA.md
+│   ├── ETAPA_4_PLAN.md
+│   ├── ETAPA_5_COMPLETADA.md
+│   └── OPCIONES_MEMORIA.md
+├── data/
+│   ├── info_prueba.pdf
+│   └── documento_tesis.pdf
+├── vectorstore_faiss/          # Índice FAISS
+├── checkpoints.db              # Memoria LangGraph
+└── users.db                    # Usuarios
 ```
 Tesis_Agentic_RAG/
 ├── main.py                      # FastAPI entry point
