@@ -7,83 +7,135 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- Contenedor Principal -->
-    <div class="main-container">
+    
+    <!-- ==============================
+         PAGINA DE LOGIN/REGISTRO
+         ============================== -->
+    <div class="auth-container hidden" id="auth-page">
       
-      <!-- Header Institucional -->
-      <header class="header-institucional">
-        <div class="banda-roja"></div>
-        <div class="header-content">
-          <div class="header-logo">
-            <div class="universidad-icon">🎓</div>
-            <h1 class="header-title">Universidad de Oriente</h1>
+      <!-- Columna Izquierda: Información -->
+      <div class="auth-sidebar">
+        <div class="university-icon">🎓</div>
+        <h1>UNIVERSIDAD DE ORIENTE</h1>
+        <h2>Centro de Consulta de Documentos Históricos</h2>
+        
+        <div class="auth-features">
+          <div class="auth-feature">
+            <span>📚</span>
+            <span>Consulta de documentos históricos</span>
           </div>
-          <p class="header-subtitle">Consultor de Documentos Históricos - Chatbot Agentic RAG</p>
+          <div class="auth-feature">
+            <span>🔍</span>
+            <span>Búsqueda inteligente con IA</span>
+          </div>
+          <div class="auth-feature">
+            <span>📖</span>
+            <span>Acceso a información verificada</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna Derecha: Formulario -->
+      <div class="auth-form-container">
+        <div class="auth-form-box">
+          <h2 id="auth-title">Iniciar sesión</h2>
+          <p class="subtitle" id="auth-subtitle">Accede al chatbot de consulta histórica</p>
+          
+          <form id="auth-form">
+            <input type="text" id="auth-username" placeholder="Usuario" required />
+            <input type="email" id="auth-email" placeholder="Correo electrónico" class="hidden" />
+            <input type="password" id="auth-password" placeholder="Contraseña" required />
+            <button type="submit" id="auth-submit">Entrar</button>
+          </form>
+          
+          <p class="auth-toggle" id="auth-toggle-text">
+            ¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>
+          </p>
+          <p id="auth-message"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==============================
+         PAGINA PRINCIPAL (CHAT)
+         ============================== -->
+    <div class="app-container hidden" id="chat-page">
+      
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-banda-roja"></div>
+        <div class="header-main">
+          <div>
+            <div class="header-title">UNIVERSIDAD DE ORIENTE</div>
+            <div class="header-subtitle">Chatbot Agentic RAG - Consulta Histórica</div>
+          </div>
+          <div class="header-actions">
+            <span class="user-welcome" id="user-welcome"></span>
+            <button class="logout-btn" id="logout-btn">Cerrar sesión</button>
+          </div>
         </div>
       </header>
-
-      <!-- Usuario Autenticado (visible después de login) -->
-      <div class="user-info hidden" id="user-info">
-        <span class="user-welcome" id="user-welcome"></span>
-        <button class="logout-btn" id="logout-btn">Cerrar sesión</button>
-      </div>
-
-      <!-- Contenedor de Auth (Login/Registro) -->
-      <div class="auth-container" id="auth-container">
-        <h2 class="auth-title" id="auth-title">Iniciar sesión</h2>
-        <form id="auth-form">
-          <input type="text" id="auth-username" placeholder="Usuario" required />
-          <input
-            type="email"
-            id="auth-email"
-            placeholder="Correo electrónico"
-            class="hidden"
-          />
-          <input
-            type="password"
-            id="auth-password"
-            placeholder="Contraseña"
-            required
-          />
-          <button type="submit" id="auth-submit">Entrar</button>
-        </form>
-        <p class="auth-toggle" id="auth-toggle-text">
-          ¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>
-        </p>
-        <p id="auth-message"></p>
-      </div>
-
-      <!-- Contenedor de Chat (visible después de login) -->
-      <div class="chat-container hidden" id="chat-container">
+      
+      <!-- Contenido Principal -->
+      <div class="main-content">
         
-        <!-- Estado de conexión -->
-        <div class="api-status">
-          <span class="status-dot" id="status-dot"></span>
-          <span>Estado: <span id="api-status">Conectando...</span></span>
-        </div>
-
-        <!-- Mensajes del chat -->
-        <div class="chat-messages" id="chat-messages">
-          <div class="message bot-message">
-            <p>¡Bienvenido al Chatbot de la Universidad de Oriente!</p>
-            <p>Soy tu asistente para consultas sobre los documentos históricos de la Universidad de Oriente. ¿En qué puedo ayudarte hoy?</p>
+        <!-- Panel Izquierdo: Información -->
+        <aside class="sidebar">
+          <div class="sidebar-logo">
+            <div class="university-icon">🎓</div>
+            <h2>Universidad de Oriente</h2>
+            <p>Consulta de documentos históricos</p>
           </div>
-        </div>
-
-        <!-- Formulario de输入 -->
-        <form class="chat-input-area" id="chat-form">
-          <input
-            type="text"
-            id="user-input"
-            placeholder="Escribe tu pregunta sobre los documentos históricos..."
-            required
-          />
-          <button type="submit" id="send-button">
-            <span>Enviar</span>
-          </button>
-        </form>
+          
+          <div class="sidebar-features">
+            <div class="feature-item">
+              <div class="feature-icon">📚</div>
+              <div class="feature-text">
+                <h4>Consulta de Documentos</h4>
+                <p>Accede a información histórica verificada</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🔍</div>
+              <div class="feature-text">
+                <h4>Búsqueda Inteligente</h4>
+                <p>Encuentra lo que necesitas con IA</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">📖</div>
+              <div class="feature-text">
+                <h4>Fuentes Verificadas</h4>
+                <p>Cada respuesta cite sus fuentes</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="sidebar-status">
+            <div class="status-indicator">
+              <span class="status-dot" id="status-dot"></span>
+              <span>Estado: <span id="api-status">Conectando...</span></span>
+            </div>
+          </div>
+        </aside>
+        
+        <!-- Panel Derecho: Chat -->
+        <main class="chat-area">
+          <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">
+              <p>¡Bienvenido al Chatbot de la Universidad de Oriente!</p>
+              <p>Soy tu asistente para consultas sobre los documentos históricos. ¿En qué puedo ayudarte hoy?</p>
+            </div>
+          </div>
+          
+          <form class="chat-input-area" id="chat-form">
+            <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre los documentos históricos..." required />
+            <button type="submit" id="send-button">
+              <span>Enviar</span>
+            </button>
+          </form>
+        </main>
       </div>
-
     </div>
 
     <script src="script.js"></script>

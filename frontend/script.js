@@ -5,9 +5,11 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- Elementos del DOM ---
-  const authContainer = document.getElementById("auth-container");
+  const authPage = document.getElementById("auth-page");
+  const chatPage = document.getElementById("chat-page");
   const authForm = document.getElementById("auth-form");
   const authTitle = document.getElementById("auth-title");
+  const authSubtitle = document.getElementById("auth-subtitle");
   const authUsername = document.getElementById("auth-username");
   const authEmail = document.getElementById("auth-email");
   const authPassword = document.getElementById("auth-password");
@@ -15,10 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const authToggleText = document.getElementById("auth-toggle-text");
   const toggleAuth = document.getElementById("toggle-auth");
   const authMessage = document.getElementById("auth-message");
-  const userInfo = document.getElementById("user-info");
   const userWelcome = document.getElementById("user-welcome");
   const logoutBtn = document.getElementById("logout-btn");
-  const chatContainer = document.getElementById("chat-container");
   const chatForm = document.getElementById("chat-form");
   const userInput = document.getElementById("user-input");
   const chatMessages = document.getElementById("chat-messages");
@@ -80,16 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
 
   function showChat() {
-    chatContainer.classList.remove("hidden");
-    userInfo.classList.remove("hidden");
-    authContainer.classList.add("hidden");
+    authPage.classList.add("hidden");
+    chatPage.classList.remove("hidden");
     userWelcome.textContent = `👤 ${currentUser}`;
   }
 
   function showAuth() {
-    chatContainer.classList.add("hidden");
-    userInfo.classList.add("hidden");
-    authContainer.classList.remove("hidden");
+    authPage.classList.remove("hidden");
+    chatPage.classList.add("hidden");
     authMessage.textContent = "";
     authPassword.value = "";
   }
@@ -196,11 +194,13 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (isRegisterMode) {
       authTitle.textContent = "Crear cuenta";
+      authSubtitle.textContent = "Regístrate para acceder al chatbot";
       authEmail.classList.remove("hidden");
       authSubmit.textContent = "Registrarse";
       authToggleText.innerHTML = '¿Ya tienes cuenta? <a href="#" id="toggle-auth">Inicia sesión</a>';
     } else {
       authTitle.textContent = "Iniciar sesión";
+      authSubtitle.textContent = "Accede al chatbot de consulta histórica";
       authEmail.classList.add("hidden");
       authSubmit.textContent = "Entrar";
       authToggleText.innerHTML = '¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>';
@@ -215,11 +215,13 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (isRegisterMode) {
           authTitle.textContent = "Crear cuenta";
+          authSubtitle.textContent = "Regístrate para acceder al chatbot";
           authEmail.classList.remove("hidden");
           authSubmit.textContent = "Registrarse";
           authToggleText.innerHTML = '¿Ya tienes cuenta? <a href="#" id="toggle-auth">Inicia sesión</a>';
         } else {
           authTitle.textContent = "Iniciar sesión";
+          authSubtitle.textContent = "Accede al chatbot de consulta histórica";
           authEmail.classList.add("hidden");
           authSubmit.textContent = "Entrar";
           authToggleText.innerHTML = '¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>';
@@ -264,6 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
           authMessage.textContent = "✅ Registro exitoso. Ahora inicia sesión.";
           isRegisterMode = false;
           authTitle.textContent = "Iniciar sesión";
+          authSubtitle.textContent = "Accede al chatbot de consulta histórica";
           authEmail.classList.add("hidden");
           authSubmit.textContent = "Entrar";
           authToggleText.innerHTML = '¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>';

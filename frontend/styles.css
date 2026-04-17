@@ -1,7 +1,7 @@
 /* ============================================
    ESTILOS - CHATBOT AGENTIC RAG - UO
-   Universidad de Oriente - Sala de Fondos Raros
-   Colores: Rojo UO (#C81F1F), Azul UO (#00308F), Blanco
+   Universidad de Oriente
+   Diseño: Pantalla completa con dos paneles
    ============================================ */
 
 /* --- Variables CSS --- */
@@ -10,6 +10,7 @@
   --uo-rojo-oscuro: #A01818;
   --uo-azul: #00308F;
   --uo-azul-claro: #1E88E5;
+  --uo-azul-muy-claro: #E3F2FD;
   --uo-blanco: #FFFFFF;
   --uo-gris-claro: #F5F7FA;
   --uo-gris-medio: #E8EBF0;
@@ -26,95 +27,68 @@
   padding: 0;
 }
 
-body {
+html, body {
+  height: 100%;
   font-family: 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(135deg, var(--uo-gris-claro) 0%, #E8EBF0 100%);
-  min-height: 100vh;
+  background: var(--uo-gris-claro);
+}
+
+/* ============================================
+   LAYOUT PRINCIPAL - PANTALLA COMPLETA
+   ============================================ */
+
+.app-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 100vh;
 }
 
-/* --- Contenedor Principal --- */
-.main-container {
-  width: 100%;
-  max-width: 680px;
-  background: var(--uo-blanco);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-}
-
-/* --- Header Institucional --- */
-.header-institucional {
+/* --- Header --- */
+.app-header {
   background: var(--uo-azul);
+  color: var(--uo-blanco);
   padding: 0;
-  position: relative;
+  flex-shrink: 0;
 }
 
-.banda-roja {
+.header-banda-roja {
   height: 6px;
   background: var(--uo-rojo);
 }
 
-.header-content {
-  padding: 20px 24px 24px;
-  text-align: center;
-}
-
-.header-logo {
+.header-main {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.universidad-icon {
-  width: 42px;
-  height: 42px;
-  background: var(--uo-blanco);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
+  padding: 12px 24px;
 }
 
 .header-title {
-  color: var(--uo-blanco);
-  font-size: 1.4em;
+  font-size: 1.3em;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.9em;
-  margin-top: 4px;
+  font-size: 0.85em;
+  opacity: 0.85;
 }
 
-/* --- Usuario Logueado --- */
-.user-info {
-  background: var(--uo-gris-claro);
-  padding: 12px 24px;
+.header-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--uo-gris-medio);
+  gap: 16px;
 }
 
 .user-welcome {
-  color: var(--uo-azul);
-  font-weight: 600;
   font-size: 0.95em;
 }
 
 .logout-btn {
   background: transparent;
-  border: 1px solid var(--uo-rojo);
-  color: var(--uo-rojo);
+  border: 1px solid var(--uo-blanco);
+  color: var(--uo-blanco);
   padding: 6px 14px;
   border-radius: 4px;
   font-size: 0.85em;
@@ -124,33 +98,136 @@ body {
 
 .logout-btn:hover {
   background: var(--uo-rojo);
-  color: var(--uo-blanco);
+  border-color: var(--uo-rojo);
 }
 
-/* --- Contenedor Chat --- */
-.chat-container {
+/* --- Main Content --- */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* --- Panel Izquierdo (Información) --- */
+.sidebar {
+  width: 320px;
+  background: var(--uo-azul);
+  color: var(--uo-blanco);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  height: 500px;
+  flex-shrink: 0;
 }
 
-/* --- Mensajes --- */
+.sidebar-logo {
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 20px;
+}
+
+.sidebar-logo .university-icon {
+  width: 70px;
+  height: 70px;
+  background: var(--uo-blanco);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 12px;
+}
+
+.sidebar-logo h2 {
+  font-size: 1.3em;
+  margin-bottom: 4px;
+}
+
+.sidebar-logo p {
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+
+.sidebar-features {
+  flex: 1;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.feature-icon {
+  font-size: 20px;
+}
+
+.feature-text h4 {
+  font-size: 0.95em;
+  margin-bottom: 4px;
+}
+
+.feature-text p {
+  font-size: 0.8em;
+  opacity: 0.75;
+}
+
+.sidebar-status {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.status-dot.conectado {
+  background: #4CAF50;
+}
+
+.status-dot.desconectado {
+  background: var(--uo-rojo);
+}
+
+/* --- Panel Derecho (Chat) --- */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--uo-gris-claro);
+  overflow: hidden;
+}
+
 .chat-messages {
   flex: 1;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
-  background: var(--uo-gris-claro);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .message {
-  max-width: 85%;
-  padding: 12px 16px;
+  max-width: 75%;
+  padding: 14px 18px;
   border-radius: 12px;
   font-size: 0.95em;
-  line-height: 1.5;
+  line-height: 1.6;
   animation: fadeIn 0.3s ease;
 }
 
@@ -171,8 +248,7 @@ body {
   color: var(--uo-gris-oscuro);
   align-self: flex-start;
   border-bottom-left-radius: 4px;
-  border: 1px solid var(--uo-gris-medio);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .message p {
@@ -183,10 +259,10 @@ body {
   margin-bottom: 0;
 }
 
-/* --- Área de输入 --- */
+/* --- Input Area --- */
 .chat-input-area {
   background: var(--uo-blanco);
-  padding: 16px 20px;
+  padding: 16px 24px;
   border-top: 1px solid var(--uo-gris-medio);
   display: flex;
   gap: 12px;
@@ -194,7 +270,7 @@ body {
 
 #user-input {
   flex: 1;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border: 2px solid var(--uo-gris-medio);
   border-radius: 8px;
   font-size: 0.95em;
@@ -210,7 +286,7 @@ body {
   background: var(--uo-rojo);
   color: var(--uo-blanco);
   border: none;
-  padding: 12px 24px;
+  padding: 14px 28px;
   border-radius: 8px;
   font-size: 0.95em;
   font-weight: 600;
@@ -230,52 +306,10 @@ body {
   cursor: not-allowed;
 }
 
-/* --- Spinner --- */
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid var(--uo-blanco);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  display: inline-block;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* --- Estado API --- */
-.api-status {
-  background: var(--uo-gris-claro);
-  padding: 8px 16px;
-  font-size: 0.8em;
-  color: var(--uo-text-light);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ccc;
-}
-
-.status-dot.conectado {
-  background: #4CAF50;
-}
-
-.status-dot.desconectado {
-  background: var(--uo-rojo);
-}
-
-/* --- Dropdown Fuentes --- */
+/* --- Fuentes Dropdown --- */
 .sources-dropdown {
   margin-top: 12px;
-  background: var(--uo-gris-claro);
+  background: var(--uo-azul-muy-claro);
   border-left: 4px solid var(--uo-azul);
   border-radius: 6px;
   padding: 10px 14px;
@@ -314,24 +348,111 @@ body {
   margin-top: 4px;
 }
 
-/* --- Auth Container (Login/Registro) --- */
+/* --- Spinner --- */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--uo-blanco);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   PANTALLA DE LOGIN/REGISTRO
+   ============================================ */
+
 .auth-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+.auth-sidebar {
+  width: 50%;
+  background: var(--uo-azul);
+  color: var(--uo-blanco);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 48px;
+  text-align: center;
+}
+
+.auth-sidebar .university-icon {
+  width: 100px;
+  height: 100px;
   background: var(--uo-blanco);
-  padding: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin-bottom: 24px;
+}
+
+.auth-sidebar h1 {
+  font-size: 2em;
+  margin-bottom: 8px;
+}
+
+.auth-sidebar h2 {
+  font-size: 1.4em;
+  font-weight: 400;
+  margin-bottom: 32px;
+  opacity: 0.9;
+}
+
+.auth-features {
+  text-align: left;
+  max-width: 300px;
+}
+
+.auth-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 1em;
+}
+
+.auth-form-container {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--uo-gris-claro);
+  padding: 48px;
+}
+
+.auth-form-box {
+  background: var(--uo-blanco);
+  padding: 40px;
   border-radius: 12px;
   box-shadow: var(--shadow-card);
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
 }
 
-.auth-title {
-  text-align: center;
+.auth-form-box h2 {
   color: var(--uo-azul);
-  font-size: 1.5em;
-  font-weight: 700;
+  font-size: 1.6em;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.auth-form-box .subtitle {
+  color: var(--uo-text-light);
+  text-align: center;
   margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--uo-gris-medio);
 }
 
 #auth-form {
@@ -407,7 +528,7 @@ body {
 
 /* --- Scrollbar personalizada --- */
 .chat-messages::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .chat-messages::-webkit-scrollbar-track {
@@ -416,7 +537,7 @@ body {
 
 .chat-messages::-webkit-scrollbar-thumb {
   background: var(--uo-azul-claro);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
@@ -424,49 +545,73 @@ body {
 }
 
 /* --- Responsive --- */
-@media (max-width: 600px) {
-  body {
-    padding: 10px;
+@media (max-width: 900px) {
+  .sidebar {
+    width: 240px;
+    padding: 16px;
   }
-
-  .main-container {
-    border-radius: 8px;
+  
+  .sidebar-logo .university-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
   }
-
-  .header-content {
-    padding: 16px 16px 20px;
+  
+  .feature-item {
+    padding: 8px;
   }
+}
 
-  .header-title {
-    font-size: 1.2em;
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
   }
-
-  .chat-container {
-    height: 400px;
-  }
-
-  .chat-messages {
+  
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
     padding: 12px;
   }
-
+  
+  .sidebar-logo {
+    width: 100%;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .sidebar-logo .university-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  
+  .sidebar-logo h2 {
+    font-size: 1em;
+  }
+  
+  .sidebar-features {
+    display: none;
+  }
+  
+  .sidebar-status {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  
   .message {
     max-width: 90%;
-    font-size: 0.9em;
   }
-
-  .chat-input-area {
-    padding: 12px;
+  
+  /* Auth responsive */
+  .auth-sidebar {
+    display: none;
   }
-
-  #user-input {
-    padding: 10px 12px;
-  }
-
-  #send-button {
-    padding: 10px 16px;
-  }
-
-  .auth-container {
-    padding: 24px;
+  
+  .auth-form-container {
+    width: 100%;
   }
 }
