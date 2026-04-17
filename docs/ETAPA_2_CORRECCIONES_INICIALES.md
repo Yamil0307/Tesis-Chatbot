@@ -65,7 +65,7 @@ def search_university_history(query: str) -> str:
     - Documentos históricos de la Universidad de Oriente
     - Reglamentos académicos
     - Estatutos y normativas
-    - Archivos de la Sala de Fondos Raros y Valiosos
+    - Archivos de la Universidad de Oriente
     """
 ```
 
