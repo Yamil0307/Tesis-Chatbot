@@ -16,7 +16,6 @@ from typing import List
 
 # Importar desde los módulos existentes
 from ingest_ocr import OCRIngestor
-from ingest_utils import load_embeddings
 
 
 class OCRFolderIngestor:

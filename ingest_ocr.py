@@ -19,7 +19,13 @@ class OCRIngestor:
     def __init__(self, db_path: str = "vectorstore_faiss", embedding_model: str = None):
         self.db_path = db_path
         self.embedding_model = embedding_model or "sentence-transformers/all-MiniLM-L6-v2"
-        self.embeddings = load_embeddings(self.embedding_model)
+        self.embeddings = None  # Lazy loading
+    
+    def _get_embeddings(self):
+        """Carga embeddings solo cuando se necesitan"""
+        if self.embeddings is None:
+            self.embeddings = load_embeddings(self.embedding_model)
+        return self.embeddings
 
     def load_ocr_image(self, image_path: str) -> Optional[List[Document]]:
         """
@@ -109,11 +115,11 @@ class OCRIngestor:
             store_path = os.path.join(db_path, "index.pkl")
             if os.path.exists(index_path) and os.path.exists(store_path):
                 print(f"🔄 Vectorstore existente encontrado, cargando y agregando nuevos documentos...")
-                vectorstore = FAISS.load_local(db_path, self.embeddings, allow_dangerous_deserialization=True)
+                vectorstore = FAISS.load_local(db_path, self._get_embeddings(), allow_dangerous_deserialization=True)
                 vectorstore.add_documents(documents)
             else:
                 print(f"🆕 No existe vectorstore, creando uno nuevo...")
-                vectorstore = FAISS.from_documents(documents, self.embeddings)
+                vectorstore = FAISS.from_documents(documents, self._get_embeddings())
             return vectorstore
         except Exception as e:
             print(f"❌ ERROR creando vectorstore: {e}")
