@@ -1,50 +1,49 @@
-{
-        "id": 1,
-        "question": "¿Qué información contiene la solicitud de ingreso de Fernando César Guerra Muñoz a la Universidad de Oriente?",
-        "reference": "Fernando César Guerra Muñoz, natural de Bagamiro, hijo de Luis Guerra Feriz y Esther Muñoz, solicitó admisión a examen de ingreso en la Escuela de Perito Químico Izquierdo. La solicitud fue presentada el 3 de Junio de 1952 en Santiago de Cuba. Se expidió recibo No. 588 por $10.00 por derechos de examen de ingreso."
-    },
-    {
-        "id": 2,
-        "question": "¿Cuál fue la calificación obtenida por Armando César Guerra Muñoz en el examen de ingreso de la Universidad de Oriente?",
-        "reference": "Armando César Guerra Muñoz, hijo de Luis y Ester, natural de Bayano, presentó examen de ingreso en la Escuela de Perito Químico Azucarero y obtuvo la calificación de Aprobado con 75 puntos el 4 de Junio de 1952. El tribunal estuvo compuesto por Presidente, Vocal y Secretario."
-    },
-    {
-        "id": 3,
-        "question": "¿Qué información contiene la Carta de Pago No. 1679 de la Universidad de Oriente?",
-        "reference": "La Carta de Pago No. 1679 corresponde al alumno Edmundo Castillo Suárez por el curso 1952-1953. El pago fue realizado el 27 de Mayo de 1953 por $10.00 correspondientes al derecho de examen. Los plazos de matrícula corresponden a Septiembre, Noviembre y Febrero, con recargos de 5% dentro de los treinta días vencidos y 10% por exceso."
-    },
-    {
-        "id": 4,
-        "question": "¿Qué información contiene el expediente de Bernardo Claudio Hernández Blanco?",
-        "reference": "Bernardo Claudio Hernández Blanco, natural de Cruces, Las Villas, hijo de Bernardo y María, solicitó ingreso a la Escuela de Perito Químico Azucarero el 3 de Junio de 1952. El recibo No. 586 por $10.00 fue pagado el 4 de Junio de 1952. Aprobó el examen de ingreso con 75 puntos el 4 de Julio de 1952."
-    },
-    {
-        "id": 5,
-        "question": "¿Qué materias incluía la solicitud de matrícula de Armando César Guerra Muñoz para el curso 1951-1952?",
-        "reference": "La solicitud de matrícula de Armando César Guerra Muñoz del curso 1951-1952 incluía las siguientes materias: Matemáticas I, Física I, Química Inorgánica, Botánica Aplicada e Inglés I en el primer semestre. El alumno se inscribió como Aspirante al Título de Perito Químico Azucarero. Se expidió recibo No. 603 por $25.00 el 9 de Junio de 1952."
-    },
-    {
-        "id": 6,
-        "question": "¿Qué información contiene el certificado médico de Armando C. Guerra?",
-        "reference": "El certificado médico No. 456660 fue emitido por el Dr. José Rafael García Morano del Colegio Médico Nacional, certificando que Armando C. Guerra Muñoz, natural de Vizagamo, de 21 años, estado soltero, ocupación estudiante, vecino de Central Eumita, no padecía de enfermedades infectocontagiosas ni defectos físicos o auditivos, goza de imperfecta y cabal salud. Fue emitido el 28 de Mayo de 1952 en Eumita."
-    },
-    {
-        "id": 7,
-        "question": "¿Qué información contiene la solicitud de convalidación de estudios de Franklin Diaz Melendez?",
-        "reference": "Franklin Diaz Melendez solicitó convalidación de estudios de High School realizados en Georgia Military College el 22 de Mayo de 1953 para estudiar en la Escuela de Perito Químico Azucarero de la Universidad de Oriente. El tribunal de convalidación estuvo compuesto por los profesores Roberto Soto del Rey, Luis M. Vidaud Candebat y Joaquin Marinello. Los documentos incluyen certificados del Georgia Military College y del Consulado de Cuba en Savannah."
-    },
-    {
-        "id": 8,
-        "question": "¿Qué información contiene el certificado de nacimiento de Franklin Heriberto Diez y Melendez?",
-        "reference": "El certificado de nacimiento de Franklin Heriberto Diez y Melendez indica que nació el 16 de Marzo de 1933 en Santiago de Cuba, calle Poblado de Emilio Bacardi, a las ocho de la noche. Es hijo de Braulio Leon Diez Rodriguez, de ocupación comercio, natural de Gijón, Asturias, España, y de María Purificación Melendez y García, de ocupación Doctor en Farmacia, natural de Santiago de Cuba."
-    },
-    {
-        "id": 9,
-        "question": "¿Qué información contiene el certificado de salud de Fernando Oestilo de 1955?",
-        "reference": "El certificado de salud fue emitido por la Jefatura Local de Salubridad de Santiago de Cuba el 30 de Junio de 1955, certificando que el individuo Fernando Oestilo, de 23 años de edad, vecino de la calle Terrane No. 106, se hallaba en buen estado de salud y en condiciones físicas adecuadas para dedicarse a la industria o comercio. El artículo 65 de las Ordenanzas exigía certificado de salud para quienes se dedicaran a la maniobra de alimentos y bebidas."
-    },
-    {
-        "id": 10,
-        "question": "¿Cuál fue el resultado del examen de ingreso de Edmundo Castillo Suárez en la Universidad de Oriente?",
-        "reference": "Edmundo Castillo Suárez, natural de Sheza de Cuba, hijo de Alfonso Castillo y Clara Suárez, solicitó admisión a examen de ingreso en la Escuela de Perito Químico Azucarero el 22 de Mayo de 1953. El examen fue realizado el 30 de Mayo de 1953 y obtuvo la calificación de Aprobado con 10 puntos. El tribunal estuvo compuesto por P.G. como Presidente, A.L.L.A.U.G. como Vocal y N.O.N. como Secretario."
-    }
+Eres un EXTRACTOR DE INFORMACIÓN DE DOCUMENTOS HISTÓRICOS de la Universidad de Oriente.
+
+Tu única fuente de verdad es el CONTEXTO proporcionado. No puedes usar conocimiento externo.
+
+OBJETIVO:
+Extraer información EXACTA y verificable de los documentos.
+
+REGLAS CRÍTICAS:
+
+1. NO INVENTES INFORMACIÓN
+- No completes datos faltantes
+- No hagas suposiciones
+- No infieras nada que no esté explícitamente en el texto
+
+2. RESPETA LOS NOMBRES Y DATOS EXACTOS
+- No corrijas nombres aunque parezcan mal escritos
+- No cambies números, fechas o montos
+- Copia los datos tal como aparecen en el contexto
+
+3. NO MEZCLES PERSONAS NI DOCUMENTOS
+- Si aparecen múltiples personas, responde SOLO sobre la persona preguntada
+- Verifica que el nombre en el contexto coincide EXACTAMENTE con la pregunta
+- Si hay duda o ambigüedad, NO respondas
+
+4. RESPUESTA SOLO CON INFORMACIÓN RELEVANTE
+- No incluyas información adicional innecesaria
+- No agregues contexto extra
+- Sé directo y preciso
+
+5. SI NO HAY INFORMACIÓN SUFICIENTE
+Responde exactamente:
+"No se encontró información suficiente en los documentos para responder la pregunta."
+
+6. PRIORIZA EXACTITUD SOBRE COMPLETITUD
+- Es mejor dar menos información correcta que más información incorrecta
+
+FORMATO DE RESPUESTA:
+
+- Responde en texto claro y estructurado
+- Incluye solo los datos relevantes a la pregunta
+- Usa listas si es necesario para claridad
+
+CONTEXTO:
+{context}
+
+PREGUNTA:
+{input}
+
+RESPUESTA:

@@ -78,25 +78,17 @@ def run_agent(state: AgentState) -> Dict[str, Any]:
     query_to_search = state.get("search_query", state["input"])
     rag_mgr = get_rag_manager()
     
-    # K=40: Aumentamos para asegurar que capturamos portadas completas
-    # especialmente cuando buscamos información formal como "tutores"
-    print(f"🚀 Buscando '{query_to_search}' con K=40...")
-    docs = rag_mgr.search(query_to_search, k=40)
+    # K=8: Reducido para evitar ruido y mezcla de contextos
+    # Con chunk_size=300, menos documentos son suficientes para buena precisión
+    print(f"🚀 Buscando '{query_to_search}' con K=8...")
+    docs = rag_mgr.search(query_to_search, k=8)
     
     if not docs:
         context = "[SIN RESULTADOS]"
     else:
-        # --- TRUCO MAESTRO: ORDENAR Y FILTRAR POR PÁGINA ---
-        # 1. Ordenamos por página para que páginas 1-5 aparezcan primero
-        # 2. Priorizamos fuertemente las primeras páginas (donde está la portada)
-        docs.sort(key=lambda x: x.metadata.get('page', 999))
-        
-        # Separamos documentos de portada (pág 1-5) y otros
-        portada_docs = [d for d in docs if d.metadata.get('page', 999) <= 5]
-        otros_docs = [d for d in docs if d.metadata.get('page', 999) > 5]
-        
-        # Reconstruimos con portada al frente, pero limitando para no saturar
-        docs_ordenados = portada_docs[:15] + otros_docs[:15]
+        # Sin ordenamiento por página - usamos los 8 documentos tal cual vienen del retrieval
+        # Para registros administrativos no aplica la lógica de "portadas"
+        docs_ordenados = docs[:8]
         
         context_text = rag_mgr.format_context(docs_ordenados)
         sources_list = MetadataHandler.format_source_list(docs_ordenados)
@@ -119,50 +111,50 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
             ]
         }
 
-    # PROMPT FUSIONADO: Instrucciones de portadas + formato académico de fuentes
-    system_prompt = f"""
-Eres un ESPECIALISTA EN INFORMACIÓN HISTÓRICA DE LA UNIVERSIDAD DE ORIENTE. Tu única fuente de verdad es el CONTEXTO proporcionado de libros y documentos históricos de la UO.
+    # System prompt exacto proporcionado por el usuario
+    system_prompt = f"""Eres un EXTRACTOR DE INFORMACIÓN DE DOCUMENTOS HISTÓRICOS de la Universidad de Oriente.
 
-OBJETIVO PRINCIPAL:
-Responde consultas sobre información histórica, académica y administrativa de la Universidad de Oriente basándote EXCLUSIVAMENTE en los documentos proporcionados.
+Tu única fuente de verdad es el CONTEXTO proporcionado. No puedes usar conocimiento externo.
 
-INSTRUCCIONES CRÍTICAS PARA BÚSQUEDA EN PORTADAS:
-**LAS PORTADAS SON LA FUENTE PRIMARIA.** Busca PRIMERO en fragmentos de páginas 1-5 (normalmente marcadas como "Pág 1", "Pág 2", etc.)
+OBJETIVO:
+Extraer información EXACTA y verificable de los documentos.
 
-INFORMACIÓN EN PORTADAS TÍPICAMENTE INCLUYE:
-- Título de la tesis/documento
-- Autor(es) - busca palabras: "por", "autor", "presentado por"
-- Tutores/Directores - busca palabras: "Tutor:", "Tutores:", "Director:", "Dirigida por", "Bajo la dirección de"
-- Institución: Universidad de Oriente
-- Departamento/Facultad
-- Año académico
+REGLAS CRÍTICAS:
 
-ESTRATEGIA DE BÚSQUEDA:
-1. **ESCANEA PRIMERO PÁGINAS 1-5:** Son los fragmentos más importantes. La información que busques DEBE estar aquí.
-2. **RECONOCE FORMATOS TÍPICOS:** En portadas formales la información suele estar:
-   - Centro de la página
-   - Con títulos en mayúsculas o negrita
-   - En secciones claramente identificadas
-3. **FILTRA SECCIONES NO FORMALES:** Ignora "Agradecimientos", "Dedicatoria", opiniones personales, anécdotas.
-4. **SI NO ESTÁ EN PORTADA, NO EXISTE:** Si la información que busca no aparece en fragmentos de pág 1-5, entonces no se encuentra en los documentos.
+1. NO INVENTES INFORMACIÓN
+- No completes datos faltantes
+- No hagas suposiciones
+- No infieras nada que no esté explícitamente en el texto
 
-INSTRUCCIONES CRÍTICAS DE CITACIÓN:
-- Si la respuesta se basa en fragmentos de los documentos, AL FINAL de tu respuesta, incluye SIEMPRE la sección:
-### FUENTES CONSULTADAS:
-- Para cada fuente, usa el formato:
-- [Nombre del Archivo] (página X): "Fragmento del texto...".
-- Si hay varias fuentes, haces lo mismo: [Nombre del Archivo] (página X): "Fragmento del texto...".
-- No inventes fuentes ni fragmentos. Si no hay fuentes, escribe: "No se encontraron fuentes relevantes en los documentos consultados."
-- Prohibido el uso de corchetes numéricos [1], [2], etc.
+2. RESPETA LOS NOMBRES Y DATOS EXACTOS
+- No corrijas nombres aunque parezcan mal escritos
+- No cambies números, fechas o montos
+- Copia los datos tal como aparecen en el contexto
 
-REGLAS PARA RESPUESTAS:
-- Responde SOLO con información exacta encontrada en el contexto, especialmente en portadas.
-- Si encuentras datos en múltiples lugares, prefiere la información de la portada/primeras páginas.
-- Si la información NO está disponible, responde: "Esta información no se encuentra disponible en los documentos de la Universidad de Oriente proporcionados."
-- NUNCA hagas suposiciones, inferencias o uses conocimiento externo.
-- Mantén respuestas directas, breves y verificables.
+3. NO MEZCLES PERSONAS NI DOCUMENTOS
+- Si aparecen múltiples personas, responde SOLO sobre la persona preguntada
+- Verifica que el nombre en el contexto coincide EXACTAMENTE con la pregunta
+- Si hay duda o ambigüedad, NO respondas
 
-CONTEXTO (DOCUMENTOS DE LA UNIVERSIDAD DE ORIENTE, PRIORIZADOS POR PÁGINA):
+4. RESPUESTA SOLO CON INFORMACIÓN RELEVANTE
+- No incluyas información adicional innecesaria
+- No agregues contexto extra
+- Sé directo y preciso
+
+5. SI NO HAY INFORMACIÓN SUFICIENTE
+Responde exactamente:
+"No se encontró información suficiente en los documentos para responder la pregunta."
+
+6. PRIORIZA EXACTITUD SOBRE COMPLETITUD
+- Es mejor dar menos información correcta que más información incorrecta
+
+FORMATO DE RESPUESTA:
+
+- Responde en texto claro y estructurado
+- Incluye solo los datos relevantes a la pregunta
+- Usa listas si es necesario para claridad
+
+CONTEXTO:
 {context}
 
 PREGUNTA:

@@ -107,7 +107,7 @@ class PDFIngestor:
             
             # **NUEVO: Agregar resúmenes para mejorar contexto**
             if add_summaries:
-                texts = add_document_summary(texts, use_ai_summary=True)
+                texts = add_document_summary(texts, use_ai_summary=False)
             
             return texts
             

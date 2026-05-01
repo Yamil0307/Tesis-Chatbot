@@ -3,6 +3,7 @@
 OCRIngestor: Pipeline de ingesta de imágenes escaneadas (OCR) al vectorstore, alineado a la arquitectura de ingest_pdf.py.
 """
 import os
+import re
 from typing import List, Optional
 from langchain_core.documents import Document
 # from PIL import Image  # Se usará si el modelo OCR lo requiere
@@ -14,6 +15,45 @@ from ingest_utils import (
     add_document_summary,
     load_embeddings,
 )
+
+
+def clean_ocr_text(text: str) -> str:
+    """
+    Limpia el texto extraído del OCR para eliminar ruido común.
+    
+    Operciones:
+    - Elimina espacios múltiples
+    - Normaliza saltos de línea
+    - Elimina espacios al inicio/fin de cada línea
+    - Elimina líneas vacías repetidas
+    - Limpia caracteres de control
+    """
+    if not text:
+        return text
+    
+    # Eliminar caracteres de control (excepto saltos de línea normales)
+    text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', text)
+    
+    # Reemplazar tabs con espacios
+    text = text.replace('\t', ' ')
+    
+    # Eliminar múltiples espacios (dejar solo uno)
+    text = re.sub(r' +', ' ', text)
+    
+    # Eliminar múltiples saltos de línea (máximo 2 juntos)
+    text = re.sub(r'\n\n\n+', '\n\n', text)
+    
+    # Eliminar espacios al inicio y final de cada línea
+    lines = [line.strip() for line in text.split('\n')]
+    
+    # Eliminar líneas completamente vacías
+    lines = [line for line in lines if line]
+    
+    # Unir líneas con un solo salto
+    text = '\n'.join(lines)
+    
+    return text
+
 
 class OCRIngestor:
     def __init__(self, db_path: str = "vectorstore_faiss", embedding_model: str = None):
@@ -42,7 +82,7 @@ class OCRIngestor:
         try:
             print(f"🖼️  Cargando imagen para OCR: {image_path}")
             import base64
-            from mistralai.client import Mistral
+            from mistralai import Mistral
             client = Mistral(api_key=MISTRAL_API_KEY)
             with open(image_path, "rb") as img_file:
                 img_b64 = base64.b64encode(img_file.read()).decode("utf-8")
@@ -78,6 +118,10 @@ class OCRIngestor:
             if not text:
                 print(f"❌ ERROR: OCR no devolvió texto")
                 return None
+            
+            # Limpiar texto del OCR
+            text = clean_ocr_text(text)
+            
             doc = Document(
                 page_content=text,
                 metadata={
@@ -98,7 +142,7 @@ class OCRIngestor:
             print(f"✂️  Fragmentando y enriqueciendo metadatos...")
             texts = split_documents(documents, chunk_size, chunk_overlap)
             texts = add_chunk_metadata(texts, documents[0].metadata["file_name"])
-            texts = add_document_summary(texts, use_ai_summary=True)
+            texts = add_document_summary(texts, use_ai_summary=False)
             print(f"   ✅ Procesamiento completo: {len(texts)} fragmentos")
             return texts
         except Exception as e:

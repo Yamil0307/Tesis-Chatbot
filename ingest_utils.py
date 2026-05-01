@@ -25,8 +25,8 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 # Parámetros de fragmentación (se pueden ajustar según necesidades)
 CHUNK_CONFIG = {
-    "chunk_size": 1000,      # Tamaño de cada fragmento en caracteres
-    "chunk_overlap": 200     # Superposición entre fragmentos
+    "chunk_size": 300,       # Tamaño de cada fragmento en caracteres (reducido para evitar mezcla de datos)
+    "chunk_overlap": 50      # Superposición entre fragmentos (reducida para mayor precisión)
 }
 
 
