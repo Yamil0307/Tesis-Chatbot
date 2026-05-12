@@ -57,54 +57,126 @@ class RAGManager:
                 allow_dangerous_deserialization=True
             )
             
-            # --- CONFIGURACIÓN CRÍTICA: MMR (Diversidad) ---
-            # search_type="mmr": Busca diversidad en lugar de similitud pura.
-            # fetch_k: Número de documentos iniciales a analizar (antes de filtrar).
+            # --- CONFIGURACIÓN: Similarity (Relevancia) ---
+            # search_type="similarity": Busca los documentos más similares a la query.
+            # Este modo es ideal para datos históricos donde queremos precisión, no diversidad.
             self.retriever = self.vector_store.as_retriever(
-                search_type="mmr",
+                search_type="similarity",
                 search_kwargs={
-                    "k": 10,           # Valor base (se sobreescribe en search)
-                    "fetch_k": 50,     # Leemos 50 candidatos para encontrar la aguja en el pajar
-                    "lambda_mult": 0.6 # Balancea relevancia (1.0) vs diversidad (0.0)
+                    "k": 10  # Número de documentos a recuperar
                 }
             )
             
-            print("✅ RAG Manager inicializado correctamente (Modo MMR Activado)")
+            print("✅ RAG Manager inicializado correctamente (Modo Similarity Activado)")
             
         except Exception as e:
             print(f"❌ ERROR al inicializar RAG Manager: {e}")
             print("   Por favor, ejecuta 'python ingest_data.py' primero")
             raise
     
-    def search(self, query: str, k: int = 10) -> List[Document]:
+    def search(self, query: str, k: int = 10, debug: bool = False) -> List[Document]:
         """
-        Busca documentos relevantes usando MMR.
+        Busca documentos relevantes usando Similarity con scores.
         Permite ajustar k dinámicamente.
+        
+        Args:
+            query: Texto de búsqueda
+            k: Número de documentos a recuperar
+            debug: Si True, muestra información de debug (scores)
+        
+        Returns:
+            List[Document]: Lista de documentos (sin scores para compatibilidad)
         """
-        if not self.retriever:
+        if not self.vector_store:
             return []
         
-        # Actualizamos dinámicamente k y fetch_k en el retriever
-        self.retriever.search_kwargs["k"] = k
-        # Aseguramos que fetch_k sea siempre mayor que k para que MMR funcione
-        if self.retriever.search_type == "mmr":
-            self.retriever.search_kwargs["fetch_k"] = max(k * 3, 50)
-        
-        # Ejecutar búsqueda
+        # Ejecutar búsqueda con scores
         try:
-            docs = self.retriever.invoke(query)
+            # similarity_search_with_score devuelve [(doc, score), ...]
+            docs_and_scores = self.vector_store.similarity_search_with_score(query, k=k)
+            
+            # DEBUG: Mostrar scores
+            if debug:
+                print(f"\n🔍 DEBUG - Scores para query: '{query}'")
+                for i, (doc, score) in enumerate(docs_and_scores[:5]):
+                    filename = doc.metadata.get("file_name", "desconocido")
+                    preview = doc.page_content[:80].replace("\n", " ")
+                    print(f"  [{i+1}] Score: {score:.4f} | {filename}")
+                    print(f"      Preview: {preview}...")
+            
+            # Devolver solo los documentos (para compatibilidad)
+            docs = [doc for doc, score in docs_and_scores]
+            
+            # Guardar scores en los metadatos para debugging
+            for i, (doc, score) in enumerate(docs_and_scores):
+                doc.metadata["search_score"] = score
+            
+            # Aplicar boost por nombre (prioriza docs con palabras del query)
+            docs = self.boost_by_name(docs, query)
+            
             return docs
         except Exception as e:
-            print(f"⚠️ Error en búsqueda: {e}")
+            print(f"⚠️ Error en búsqueda: {type(e).__name__}: {e}")
             return []
+    
+    def search_with_scores(self, query: str, k: int = 10) -> List[tuple]:
+        """
+        Busca documentos relevantes Y devuelve los scores.
+        Útil para debugging y filtrado.
+        
+        Returns:
+            List[tuple]: Lista de (Document, score)
+        """
+        if not self.vector_store:
+            return []
+        
+        try:
+            docs_and_scores = self.vector_store.similarity_search_with_score(query, k=k)
+            return docs_and_scores
+        except Exception as e:
+            print(f"⚠️ Error en búsqueda con scores: {e}")
+            return []
+    
+    def boost_by_name(self, docs: List[Document], query: str) -> List[Document]:
+        """
+        Boost: Prioriza documentos que contienen palabras del query (especialmente nombres).
+        
+        Esto es útil cuando el usuario busca una persona específica - 
+        los documentos con ese nombre aparecen primero.
+        """
+        if not docs or not query:
+            return docs
+        
+        # Extraer palabras del query (excluyendo palabras comunes)
+        common_words = {'de', 'la', 'el', 'en', 'que', 'es', 'por', 'para', 'con', 'una', 'un', 'del', 'al', 'los', 'las', 'se', 'su', 'su'}
+        query_words = [word.lower() for word in query.split() if word.lower() not in common_words]
+        
+        if not query_words:
+            return docs
+        
+        def get_boost_score(doc: Document) -> float:
+            """Mayor score = más relevante"""
+            content = doc.page_content.lower()
+            # Contar cuántas palabras del query aparecen en el documento
+            matches = sum(1 for word in query_words if word in content)
+            # Por cada coincidencia, agregar el score base del metadata
+            base_score = doc.metadata.get("search_score", 0)
+            return matches + base_score
+        
+        # Ordenar por boost score (descendente)
+        return sorted(docs, key=get_boost_score, reverse=True)
     
     def format_context(self, docs: List[Document]) -> str:
         """
         Formatea una lista de documentos en un string de contexto numerado.
         Incluye explícitamente el número de página para ayudar al LLM.
+        Limita a máximo 6 documentos para evitar saturación.
         """
         if not docs:
             return ""
+        
+        # Limitar a 6 documentos máximo para evitar saturación del modelo
+        docs = docs[:6]
         
         formatted_docs = []
         for i, doc in enumerate(docs, 1):

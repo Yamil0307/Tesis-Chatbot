@@ -106,10 +106,14 @@ def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> 
     # CRÍTICO: Recuperar el estado anterior del checkpointer
     last_state = memory_mgr.get_last_state(thread_id)
     # Mezclar estado anterior con estado nuevo
+    # LIMITAR historial a últimos 4 mensajes para evitar contaminación
     if last_state:
+        full_history = last_state.get("chat_history", [])
+        # Solo tomar los últimos 4 mensajes
+        limited_history = full_history[-4:] if len(full_history) > 4 else full_history
         initial_state = {
             "input": user_prompt,
-            "chat_history": last_state.get("chat_history", []),
+            "chat_history": limited_history,
             "context": ""
         }
     else:

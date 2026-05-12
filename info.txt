@@ -1,49 +1,173 @@
-Eres un EXTRACTOR DE INFORMACIÓN DE DOCUMENTOS HISTÓRICOS de la Universidad de Oriente.
+PROPUESTA FINAL DE DATASET DE EVALUACIÓN
+1. Fernando / Armando César Guerra Muñoz
+Pregunta 1
 
-Tu única fuente de verdad es el CONTEXTO proporcionado. No puedes usar conocimiento externo.
+Pregunta:
+¿Qué calificación obtuvo Armando César Guerra Muñoz en el examen de ingreso?
 
-OBJETIVO:
-Extraer información EXACTA y verificable de los documentos.
+Respuesta esperada:
+Armando César Guerra Muñoz obtuvo la calificación de “Aprobado con 75 puntos” en el examen de ingreso a la Escuela de Ingeniería Química, carrera de Perito Químico Azucarero, el 4 de Junio de 1952 en Santiago de Cuba.
 
-REGLAS CRÍTICAS:
+Fragmentos esperados:
 
-1. NO INVENTES INFORMACIÓN
-- No completes datos faltantes
-- No hagas suposiciones
-- No infieras nada que no esté explícitamente en el texto
+MOD. 13 – ACTA DE EXAMEN DE INGRESO
+Pregunta 2
 
-2. RESPETA LOS NOMBRES Y DATOS EXACTOS
-- No corrijas nombres aunque parezcan mal escritos
-- No cambies números, fechas o montos
-- Copia los datos tal como aparecen en el contexto
+Pregunta:
+¿A qué carrera aspiraba Armando César Guerra Muñoz?
 
-3. NO MEZCLES PERSONAS NI DOCUMENTOS
-- Si aparecen múltiples personas, responde SOLO sobre la persona preguntada
-- Verifica que el nombre en el contexto coincide EXACTAMENTE con la pregunta
-- Si hay duda o ambigüedad, NO respondas
+Respuesta esperada:
+Armando César Guerra Muñoz aspiraba al título de Perito Químico Azucarero.
 
-4. RESPUESTA SOLO CON INFORMACIÓN RELEVANTE
-- No incluyas información adicional innecesaria
-- No agregues contexto extra
-- Sé directo y preciso
+Fragmentos esperados:
 
-5. SI NO HAY INFORMACIÓN SUFICIENTE
-Responde exactamente:
-"No se encontró información suficiente en los documentos para responder la pregunta."
+MOD. 15 – SOLICITUD DE MATRÍCULA
+Pregunta 3
 
-6. PRIORIZA EXACTITUD SOBRE COMPLETITUD
-- Es mejor dar menos información correcta que más información incorrecta
+Pregunta:
+¿Qué información aparece en el certificado médico de Armando César Guerra Muñoz?
 
-FORMATO DE RESPUESTA:
+Respuesta esperada:
+El certificado médico indica que Armando C. Guerra Neuroz, natural de Vizagamo, de 21 años de edad, soltero, estudiante y vecino de Central Eumita, no padecía enfermedades infectocontagiosas ni defectos físicos o auditivos y gozaba de perfecta salud.
 
-- Responde en texto claro y estructurado
-- Incluye solo los datos relevantes a la pregunta
-- Usa listas si es necesario para claridad
+Fragmentos esperados:
 
-CONTEXTO:
-{context}
+Certificado médico – Colegio Médico Nacional
+2. Aureliana Ferrer Cabello
+Pregunta 4
 
-PREGUNTA:
-{input}
+Pregunta:
+¿Cuál era el estado civil y la edad de Aureliana Ferrer Cabello al momento de su matrícula?
 
-RESPUESTA:
+Respuesta esperada:
+Aureliana Ferrer Cabello tenía 44 años y era soltera.
+
+Fragmentos esperados:
+
+MOD. 15 – SOLICITUD DE MATRÍCULA
+Pregunta 5
+
+Pregunta:
+¿Qué título universitario poseía Aureliana Ferrer Cabello?
+
+Respuesta esperada:
+Aureliana Ferrer Cabello poseía el título de Doctor en Farmacia expedido por la Universidad de La Habana el 11 de Agosto de 1941.
+
+Fragmentos esperados:
+
+Título Universidad de La Habana
+Pregunta 6
+
+Pregunta:
+¿Dónde nació Aureliana Ferrer Cabello?
+
+Respuesta esperada:
+Aureliana Ferrer Cabello nació en Santiago de Cuba, en la calle Santa Lucía número setenta y dos.
+
+Fragmentos esperados:
+
+Certificación de nacimiento
+3. Benjamín Florencio Castillo Pons
+Pregunta 7
+
+Pregunta:
+¿En qué dirección residía Benjamín Florencio Castillo Pons?
+
+Respuesta esperada:
+Benjamín Florencio Castillo Pons residía en la calle Merchán número 68, Manzanillo, Oriente.
+
+Fragmentos esperados:
+
+MOD. 15 – SOLICITUD DE MATRÍCULA
+Declaración jurada
+Pregunta 8
+
+Pregunta:
+¿Qué título académico declaró poseer Benjamín Florencio Castillo Pons?
+
+Respuesta esperada:
+Benjamín Florencio Castillo Pons declaró poseer el título de Bachiller en Letras y Ciencias expedido por el Instituto de Segunda Enseñanza de Manzanillo el 13 de Septiembre de 1940.
+
+Fragmentos esperados:
+
+Declaración jurada
+Pregunta 9
+
+Pregunta:
+¿Cuál era la carrera que cursaba Benjamín Florencio Castillo Pons en la Universidad de Oriente?
+
+Respuesta esperada:
+Benjamín Florencio Castillo Pons cursaba la carrera de Perito Químico Azucarero.
+
+Fragmentos esperados:
+
+MOD. 15 – SOLICITUD DE MATRÍCULA
+4. Bernardo Claudio Hernández Blanco
+Pregunta 10
+
+Pregunta:
+¿Dónde residía Bernardo Claudio Hernández Blanco?
+
+Respuesta esperada:
+Bernardo Claudio Hernández Blanco residía en Central Santa Cecilia, Guantánamo, Oriente.
+
+Fragmentos esperados:
+
+MOD. 15 – SOLICITUD DE MATRÍCULA
+Pregunta 11
+
+Pregunta:
+¿Cuál era la edad de Bernardo Claudio Hernández Blanco al momento de solicitar matrícula?
+
+Respuesta esperada:
+Bernardo Claudio Hernández Blanco tenía 45 años.
+
+Fragmentos esperados:
+
+MOD. 15 – SOLICITUD DE MATRÍCULA
+Pregunta 12
+
+Pregunta:
+¿Dónde nació Bernardo Claudio Hernández Blanco?
+
+Respuesta esperada:
+Bernardo Claudio Hernández Blanco nació en Cruces, Las Villas.
+
+Fragmentos esperados:
+
+MOD. 15
+Certificación de nacimiento
+5. Carlos Manuel Puig Creuets
+Pregunta 13
+
+Pregunta:
+¿Qué beneficio universitario solicitó Carlos Manuel Puig Creuets?
+
+Respuesta esperada:
+Carlos Manuel Puig Creuets solicitó Matrícula Gratis para continuar estudios en la carrera de Perito Químico Azucarero.
+
+Fragmentos esperados:
+
+Comisión de Matrícula Gratis
+Pregunta 14
+
+Pregunta:
+¿Cuál fue la calificación final de Carlos M. Puig Creuets en Botánica Aplicada?
+
+Respuesta esperada:
+Carlos M. Puig Creuets obtuvo un promedio general de 84 y la calificación de curso “Aprovechado” en Botánica Aplicada.
+
+Fragmentos esperados:
+
+ACTA DE CALIFICACIÓN DE CURSO
+Pregunta 15
+
+Pregunta:
+¿Qué documento técnico estaba tramitando Carlos Manuel Puig Creuets?
+
+Respuesta esperada:
+Carlos Manuel Puig Creuets estaba tramitando el título de Graduado de la Escuela Técnica Industrial “General José B. Alemán” en la especialidad de Técnico en Industrias de Alimentos.
+
+Fragmentos esperados:
+
+Certificación universitaria de 1962

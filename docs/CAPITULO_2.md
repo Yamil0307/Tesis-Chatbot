@@ -61,7 +61,7 @@ El sistema implementa un pipeline modularizado de ingestión de documentos que p
 
 La primera etapa del pipeline consiste en la carga del documento mediante PyPDFLoader, una herramienta de LangChain que permite extraer el texto contenido en las páginas del PDF. Este método resulta efectivo para documentos que contienen texto digitalizable, es decir, documentos que fueron creados digitalmente o escaneados con OCR previo. La extracción mantiene la información de página, fundamental para la posterior citación de fuentes.
 
-Una vez cargado el documento, el sistema fragmenta el texto en chunks (fragmentos) de aproximadamente 1000 caracteres con una superposición de 200 caracteres entre fragmentos consecutivos. Esta estrategia de fragmentación garantiza que información relevante no quede dividida de manera arbitraria entre dos fragmentos adyacentes, manteniendo la coherencia semántica del contenido.
+Una vez cargado el documento, el sistema fragmenta el texto en chunks (fragmentos) de aproximadamente 300 caracteres con una superposición de 50 caracteres entre fragmentos consecutivos. Esta estrategia de fragmentación más granular garantiza que información relevante no quede dividida de manera arbitraria entre dos fragmentos adyacentes, manteniendo la coherencia semántica del contenido y evitando la mezcla de información de diferentes documentos.
 
 ### 2.2.2. Procesamiento de Imágenes mediante OCR
 
@@ -71,11 +71,13 @@ El proceso de OCR codifica la imagen en formato base64 y la envía a la API de M
 
 El sistema implementa una estrategia de fallback automático: al procesar un PDF, primero intenta extraer el texto con PyPDFLoader; si el resultado contiene menos de 500 caracteres (indicando probable ausencia de texto digitalizable), automáticamente activa el proceso de OCR para garantizar la extracción del contenido.
 
-### 2.2.3. Enriquecimiento de Metadatos
+### 2.2.3. Enriquecimiento de Metadatos y Limpieza de OCR
 
-Cada fragmento de documento se enriqurece con metadatos que facilitan la recuperación y citación posterior. Los metadatos almacenados incluyen: source (ruta del archivo), page (número de página dentro del documento original), file_name (nombre del archivo), chunk_index (posición del fragmento dentro del documento), processed_date (fecha de procesamiento) y summary (resumen automático generado por IA).
+Cada fragmento de documento se enriqurece con metadatos que facilitan la recuperación y citación posterior. Los metadatos almacenados incluyen: source (ruta del archivo), page (número de página dentro del documento original), file_name (nombre del archivo), chunk_index (posición del fragmento dentro del documento), processed_date (fecha de procesamiento) y search_score (score de relevancia de la búsqueda).
 
-La generación de resúmenes automáticos utiliza el modelo de lenguaje Gemini (gemma-3-4b-it) para crear descripciones concisas del contenido de cada fragmento. Estos resúmenes se prependen al contenido del fragmento antes de generar los embeddings, mejorando significativamente la relevancia de las búsquedas al proporcionar contexto de alto nivel a nivel semántico.
+El sistema implementa una limpieza básica del texto extraído del OCR que elimina espacios múltiples, normaliza saltos de línea, elimina líneas vacías repetidas y limpia caracteres de control. Esta limpieza mejora la calidad del texto almacenado en los chunks y reduce el ruido en las búsquedas.
+
+El sistema no utiliza resúmenes automáticos generados por IA (AI summary) para evitar la contaminación semántica entre fragmentos. Esta decisión garantiza que cada chunk contenga únicamente el texto original del documento sin resúmenes que puedan introducir información no presente en el fragmento específico.
 
 ---
 
@@ -91,9 +93,9 @@ El modelo all-MiniLM-L6-v2 produce embeddings de 384 dimensiones, suficientement
 
 FAISS (Facebook AI Similarity Search) constituye el motor de búsqueda vectorial del sistema. Su selección responde a la necesidad de realizar búsquedas de similitud en espacios de alta dimensionalidad de manera eficiente, característica esencial para implementar recuperación semántica a escala.
 
-El sistema implementa la estrategia de recuperación MMR (Maximal Marginal Relevance) con un parámetro lambda de 0.6. Esta estrategia balancea la relevancia (similitud con la consulta) con la diversidad (diferenciación entre resultados), evitando la redundancia en los documentos recuperados y garantizando una cobertura más amplia del espacio de información relevante.
+El sistema implementa la estrategia de recuperación por similitud (similarity) en lugar de MMR. Esta estrategia busca los documentos más similares a la consulta, ideal para datos históricos donde se requiere precisión en lugar de diversidad. El sistema recupera k=8 documentos, número que garantiza capturar la información necesaria manteniendo un balance adecuado con el tiempo de procesamiento.
 
-La configuración de recuperación especifica k=40 resultados, número que garantiza capturar la información necesaria mientras mantiene un balance adecuado con el tiempo de procesamiento. Adicionalmente, el sistema implementa una priorización de páginas, favoreciendo los fragmentos correspondientes a las primeras páginas (1-5) de los documentos, donde típicamente se encuentra información formal como portadas, tutores, títulos y datos de identificación.
+Adicionalmente, el sistema implementa un mecanismo de boost por nombre que prioriza los documentos que contienen las palabras de la consulta (especialmente nombres de personas), garantizando que las búsquedas por personas específicas retornen los documentos más relevantes.
 
 ### 2.3.3. Estrategia de Metadatos
 
@@ -113,24 +115,25 @@ La arquitectura de tres nodos implementada difiere del modelo Retrieval-Grader-R
 
 1. **Nodo contextualize (Reescritura de consultas)**: Este nodo analiza el historial de conversación para reformular consultas que dependen de contexto previo. Por ejemplo, si el usuario pregunta "¿Quiénes son sus tutores?" después de discutir sobre una tesis específica, el nodo reformula la consulta a "¿Quiénes son los tutores de la tesis de [nombre]?". Este nodo utiliza un prompt específico que instructua al modelo a generar preguntas independientes y específicas para búsqueda en base de datos.
 
-2. **Nodo search (Recuperación de documentos)**: Este nodo ejecuta la búsqueda en FAISS utilizando la consulta reformulada (o la original si no hay historial). Recupera k=40 documentos aplicando MMR con lambda=0.6, ordena los resultados priorizando páginas 1-5, y combina el contenido con la información de fuentes para formar el contexto que será utilizado en la generación.
+2. **Nodo search (Recuperación de documentos)**: Este nodo ejecuta la búsqueda en FAISS utilizando la consulta reformulada (o la original si no hay historial). Recupera k=8 documentos aplicando búsqueda por similitud, y combina el contenido con la información de fuentes para formar el contexto que será utilizado en la generación. El sistema limita el contexto a máximo 6 documentos para evitar saturación del modelo.
 
-3. **Nodo respond (Generación de respuesta)**: Este nodo produce la respuesta final integrando el contexto recuperado con el modelo de lenguaje. Incluye un system prompt que especifica las instrucciones de citación académica, format de fuentes y restricciones anti-alucinación.
+3. **Nodo respond (Generación de respuesta)**: Este nodo produce la respuesta final integrando el contexto recuperado con el modelo de lenguaje. El system prompt implementa un rol de extractor de información que prioriza la exactitud sobre la completitud, con reglas explícitas: no inventar información, usar datos exactos del contexto, no mezclar personas, y responder "No se encontró información suficiente en los documentos para responder la pregunta" cuando no hay datos disponibles.
 
 ### 2.4.2. Mecanismos Anti-Alucinación
 
 El sistema implementa múltiples mecanismos para prevenir alucinaciones (generación de información no presente en los documentos base):
 
-- **Temperatura 0.0**: El modelo de lenguaje se configura con temperatura cero, garantizando respuestas deterministas y minimizando la creatividad del modelo.
+- **Temperatura 0.0**: El modelo de lenguaje se configura con temperatura cero, guaranteeing respuestas deterministas y minimizando la creatividad del modelo.
 - **Búsqueda obligatoria**: El flujo del agente siempre ejecuta la búsqueda en FAISS antes de generar una respuesta. No existe la posibilidad de que el modelo responda directamente sin consultar la base de conocimientos.
-- **System prompt restrictivo**: El prompt del sistema incluye instrucciones explícitas de solo usar información del contexto proporcionado, prohibido usar conocimiento externo, y respuestas predefinidas para cuando no se encuentra información relevante.
-- **Detectores de vacío**: Cuando la búsqueda no retorna resultados, el sistema devuelve automáticamente el mensaje "[SIN RESULTADOS]" forcing al modelo a indicar que no tiene información sobre el tema consultado.
+- **System prompt restrictivo**: El prompt del sistema incluye instrucciones explícitas de solo usar información del contexto proporcionado, prohibido usar conocimiento externo, y respuestas predefinidas para cuando no se encuentra información relevante ("No se encontró información suficiente en los documentos para responder la pregunta.").
+- **Detectores de vacío**: Cuando la búsqueda no retorna resultados, el sistema devuelve automáticamente el mensaje "[SIN RESULTADOS]" forzando al modelo a indicar que no tiene información sobre el tema consultado.
+- **Priorización de exactitud**: Las instrucciones enfatizan que es mejor dar menos información correcta que más información incorrecta, y el modelo debe preferir decir "no sé" a inventar datos.
 
 ### 2.4.3. Manejo de Memoria Conversacional
 
 El sistema implementa memoria persistente mediante SqliteSaver de LangGraph, almacenada en checkpoints.db. Cada sesión de usuario mantiene un thread_id único que permite recuperar el estado conversacional entre invocaciones. Esta característica es fundamental para mantener coherencia en conversaciones extensas donde el usuario hace preguntas de seguimiento.
 
-El historial de mensajes se construye concatenando HumanMessage y AIMessage, transmitiéndose entre invocaciones del agente. El modelo de lenguaje recibe este historial como parte del contexto, permitiendo que las respuestas consideren el flujo conversacional completo.
+El historial de mensajes se construye concatenando HumanMessage y AIMessage, transmitiéndose entre invocaciones del agente. El sistema limita el historial a los últimos 4 mensajes para evitar contaminación semántica entre conversaciones largas. El modelo de lenguaje recibe este historial como parte del contexto, permitiendo que las respuestas consideren el flujo conversacional completo.
 
 ---
 

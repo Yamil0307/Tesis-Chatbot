@@ -13,10 +13,10 @@ from memory_manager import get_memory_manager
 load_dotenv()
 
 # --- CONFIGURACIÓN DEL MODELO ---
-# Usamos gemma-3-4b-it como solicitaste.
-# Temperature = 0.0 para máxima precisión y menos inventos.
+# Usamos gemma-4-31b-it.
+# Temperature = 0.0 para máxima precisión y menos alucinaciones.
 llm = ChatGoogleGenerativeAI(
-    model="gemma-3-4b-it", 
+    model="gemma-4-31b-it", 
     temperature=0.0,
     max_output_tokens=1024
 )
@@ -124,7 +124,7 @@ REGLAS CRÍTICAS:
 1. NO INVENTES INFORMACIÓN
 - No completes datos faltantes
 - No hagas suposiciones
-- No infieras nada que no esté explícitamente en el texto
+- Puedes interpretar relaciones explícitas del documento aunque estén redactadas de forma diferente a la pregunta.
 
 2. RESPETA LOS NOMBRES Y DATOS EXACTOS
 - No corrijas nombres aunque parezcan mal escritos
@@ -162,11 +162,73 @@ PREGUNTA:
 
 RESPUESTA:
 """
-    
+
+    def extract_response_text(response):
+        """
+        Extrae únicamente la respuesta final visible del modelo,
+        ignorando bloques de thinking/reasoning.
+        """
+
+        content = response.content
+
+        # Caso: lista estructurada
+        if isinstance(content, list):
+
+            text_parts = []
+
+            for item in content:
+
+                # Caso 1: string plano = respuesta válida
+                if isinstance(item, str):
+                    text_parts.append(item)
+
+                # Caso 2: dict estructurado
+                elif isinstance(item, dict):
+
+                    # Ignorar thinking
+                    if item.get("type") == "thinking":
+                        continue
+
+                    # Texto normal
+                    if item.get("type") == "text":
+                        text_parts.append(item.get("text", ""))
+
+                # Caso 3: objeto con atributos
+                elif hasattr(item, "type"):
+
+                    if getattr(item, "type", "") == "thinking":
+                        continue
+
+                    if getattr(item, "type", "") == "text":
+                        text_parts.append(getattr(item, "text", ""))
+
+                # Caso 4: fallback seguro
+                else:
+                    text_parts.append(str(item))
+
+            return "\n".join(text_parts).strip()
+
+        # Caso normal
+        return str(content).strip()
+
     try:
         response = llm.invoke(system_prompt)
-        response_content = response.content.strip()
+        
+        # Usar la función helper para extraer solo la respuesta
+        extracted = extract_response_text(response)
+        
+        # Si la función devuelve vacío, usar el contenido original como fallback
+        if not extracted or len(extracted.strip()) < 5:
+            # Fallback: usar response.content directamente
+            if hasattr(response, 'content'):
+                response_content = str(response.content)
+            else:
+                response_content = str(response)
+        else:
+            response_content = extracted
+        
     except Exception as e:
+        print(f"❌ ERROR en LLM: {type(e).__name__}: {e}")
         response_content = "Lo siento, hubo un error al procesar la respuesta."
 
     # --- AGREGAR SIEMPRE FUENTES AL FINAL DE LA RESPUESTA ---
