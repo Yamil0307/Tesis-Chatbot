@@ -76,9 +76,10 @@ class MetadataHandler:
         **ETAPA 2.2: Formato académico para citaciones**
         
         Genera citaciones en formato:
-        - "Historia de la Universidad (página 42)"
-        - "Reglamento Académico"
-        - "Documento desconocido"
+        - "Historia de la Universidad (página 42)" → para PDFs y documentos
+        - "Image00156.jpg" → para imágenes (sin página)
+        - "Reglamento Académico" → sin página si no disponible
+        - "Documento desconocido" → fallback
         
         Args:
             source_info (Dict[str, Any]): Información de fuente extraída
@@ -91,17 +92,32 @@ class MetadataHandler:
         
         # Limpiar nombre de archivo
         if file_name and file_name != "Documento desconocido":
-            # Remover extensión .pdf si existe
-            display_name = file_name.replace(".pdf", "").replace(".txt", "")
-            # Capitalizar correctamente
-            display_name = " ".join(word.capitalize() for word in display_name.split("_"))
+            # Detectar si es imagen por extensión
+            is_image = any(file_name.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'])
+            
+            if is_image:
+                # Las imágenes mantienen su nombre completo con extensión, sin página
+                display_name = file_name
+            else:
+                # Los documentos: remover extensión .pdf, .txt, etc.
+                display_name = file_name.replace(".pdf", "").replace(".txt", "")
+                # Capitalizar correctamente
+                display_name = " ".join(word.capitalize() for word in display_name.split("_"))
         else:
             display_name = "Documento desconocido"
         
         # Construir la cita en formato académico
-        if page is not None and page != "None":
+        # Las imágenes NUNCA muestran página
+        is_image = any(file_name.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']) if file_name else False
+        
+        if is_image:
+            # Imágenes: solo nombre
+            return display_name
+        elif page is not None and page != "None" and page != 0:
+            # Documentos con página: mostrar página
             return f"{display_name} (página {page})"
         else:
+            # Documentos sin página o página 0
             return display_name
     
     @staticmethod
@@ -153,7 +169,8 @@ class MetadataHandler:
         
         Útil para que el LLM vea claramente de dónde viene cada fragmento.
         
-        Ejemplo: "[Fuente: Historia de la Universidad, página 23]"
+        Ejemplo para PDF: "[Fuente: Historia de la Universidad, página 23]"
+        Ejemplo para imagen: "[Fuente: Image00156.jpg]"
         
         Args:
             doc (Document): Documento individual
@@ -165,9 +182,17 @@ class MetadataHandler:
         file_name = source_info.get("file_name", "Desconocido")
         page = source_info.get("page")
         
-        if page is not None and page != "None":
+        # Detectar si es imagen
+        is_image = any(file_name.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']) if file_name else False
+        
+        if is_image:
+            # Imágenes: sin página
+            return f"[Fuente: {file_name}]"
+        elif page is not None and page != "None" and page != 0:
+            # Documentos con página
             return f"[Fuente: {file_name}, página {page}]"
         else:
+            # Documentos sin página
             return f"[Fuente: {file_name}]"
     
     @staticmethod
