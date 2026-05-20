@@ -38,21 +38,30 @@ class AuthManager:
             """)
             conn.commit()
 
-    def register(self, username: str, email: str, password: str) -> bool:
+    def register(self, username: str, email: str, password: str):
         if not username or not email or not password:
-            return False
+            return {"success": False, "error": "missing_fields"}
         password_hash = self.pwd_context.hash(password)
         try:
             with sqlite3.connect(self.db_path, timeout=10) as conn:
                 cursor = conn.cursor()
+                # Verificar si el usuario ya existe
+                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                if cursor.fetchone():
+                    return {"success": False, "error": "username_exists"}
+                # Verificar si el email ya existe
+                cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+                if cursor.fetchone():
+                    return {"success": False, "error": "email_exists"}
+                # Insertar nuevo usuario
                 cursor.execute(
                     "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
                     (username, email, password_hash)
                 )
                 conn.commit()
-            return True
+            return {"success": True}
         except sqlite3.IntegrityError:
-            return False
+            return {"success": False, "error": "db_error"}
 
     def authenticate(self, username: str, password: str) -> Optional[int]:
         with sqlite3.connect(self.db_path, timeout=10) as conn:

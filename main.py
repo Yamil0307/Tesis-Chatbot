@@ -74,8 +74,18 @@ def health_check():
 # --- 4. ENDPOINTS DE AUTENTICACIÓN ---
 @app_fastapi.post("/register")
 def register(req: RegisterRequest):
-    if not auth_manager.register(req.username.strip(), req.email.strip(), req.password):
-        raise HTTPException(status_code=400, detail="Usuario o email ya existe o datos inválidos")
+    result = auth_manager.register(req.username.strip(), req.email.strip(), req.password)
+    if not result["success"]:
+        if result["error"] == "missing_fields":
+            raise HTTPException(status_code=400, detail="Completa todos los campos.")
+        elif result["error"] == "username_exists":
+            raise HTTPException(status_code=400, detail="El nombre de usuario ya existe.")
+        elif result["error"] == "email_exists":
+            raise HTTPException(status_code=400, detail="El email ya está registrado.")
+        elif result["error"] == "db_error":
+            raise HTTPException(status_code=500, detail="Error interno de base de datos.")
+        else:
+            raise HTTPException(status_code=400, detail="Error desconocido en el registro.")
     return {"status": "success", "message": "Usuario registrado correctamente"}
 
 @app_fastapi.post("/login")

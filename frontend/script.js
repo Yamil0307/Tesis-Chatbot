@@ -4,6 +4,27 @@
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  // --- Mostrar/Ocultar contraseña ---
+  const passwordInput = document.getElementById("auth-password");
+  const togglePassword = document.getElementById("toggle-password-visibility");
+  const eyeOpen = document.getElementById("eye-open");
+  const eyeClosed = document.getElementById("eye-closed");
+
+  if (togglePassword && passwordInput && eyeOpen && eyeClosed) {
+    togglePassword.addEventListener("click", () => {
+      const isHidden = passwordInput.type === "password";
+      passwordInput.type = isHidden ? "text" : "password";
+      eyeOpen.style.display = isHidden ? "none" : "inline";
+      eyeClosed.style.display = isHidden ? "inline" : "none";
+    });
+    // Accesibilidad: permitir con Enter/Espacio
+    togglePassword.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        togglePassword.click();
+      }
+    });
+  }
   // --- Elementos del DOM ---
   const authPage = document.getElementById("auth-page");
   const chatPage = document.getElementById("chat-page");
@@ -99,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
       apiStatusSpan.textContent = "Procesando...";
     } else {
       sendButton.disabled = false;
-      sendButton.innerHTML = '<span>Enviar</span>';
+      sendButton.innerHTML = "<span>Enviar</span>";
       apiStatusSpan.textContent = "Listo";
     }
     userInput.disabled = isLoading;
@@ -146,7 +167,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Crear mensaje principal
     const messageDiv = document.createElement("div");
-    messageDiv.classList.add("message", sender === "user" ? "user-message" : "bot-message");
+    messageDiv.classList.add(
+      "message",
+      sender === "user" ? "user-message" : "bot-message",
+    );
     messageDiv.innerHTML = cuerpo.replace(/\n/g, "<br>");
     chatMessages.appendChild(messageDiv);
 
@@ -154,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (fuentes) {
       const details = document.createElement("details");
       details.className = "sources-dropdown";
-      
+
       const summary = document.createElement("summary");
       summary.textContent = "📚 Fuentes consultadas";
       details.appendChild(summary);
@@ -187,48 +211,41 @@ document.addEventListener("DOMContentLoaded", () => {
   // EVENT LISTENERS - AUTENTICACIÓN
   // ============================================
 
-  // Alternar entre login y registro
-  toggleAuth.addEventListener("click", (e) => {
-    e.preventDefault();
-    isRegisterMode = !isRegisterMode;
-    
+  // Función para actualizar la UI del toggle
+  function updateAuthToggleUI() {
     if (isRegisterMode) {
       authTitle.textContent = "Crear cuenta";
       authSubtitle.textContent = "Regístrate para acceder al chatbot";
       authEmail.classList.remove("hidden");
       authSubmit.textContent = "Registrarse";
-      authToggleText.innerHTML = '¿Ya tienes cuenta? <a href="#" id="toggle-auth">Inicia sesión</a>';
+      authToggleText.innerHTML =
+        '¿Ya tienes cuenta? <a href="#" class="toggle-link">Inicia sesión</a>';
     } else {
       authTitle.textContent = "Iniciar sesión";
       authSubtitle.textContent = "Accede al chatbot de consulta histórica";
       authEmail.classList.add("hidden");
       authSubmit.textContent = "Entrar";
-      authToggleText.innerHTML = '¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>';
+      authToggleText.innerHTML =
+        '¿No tienes cuenta? <a href="#" class="toggle-link">Regístrate</a>';
     }
-    
-    // Re-asignar el nuevo toggle
-    const newToggleAuth = document.getElementById("toggle-auth");
-    if (newToggleAuth) {
-      newToggleAuth.addEventListener("click", (e) => {
-        e.preventDefault();
-        isRegisterMode = !isRegisterMode;
-        
-        if (isRegisterMode) {
-          authTitle.textContent = "Crear cuenta";
-          authSubtitle.textContent = "Regístrate para acceder al chatbot";
-          authEmail.classList.remove("hidden");
-          authSubmit.textContent = "Registrarse";
-          authToggleText.innerHTML = '¿Ya tienes cuenta? <a href="#" id="toggle-auth">Inicia sesión</a>';
-        } else {
-          authTitle.textContent = "Iniciar sesión";
-          authSubtitle.textContent = "Accede al chatbot de consulta histórica";
-          authEmail.classList.add("hidden");
-          authSubmit.textContent = "Entrar";
-          authToggleText.innerHTML = '¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>';
-        }
-      });
+  }
+
+  // Usar event delegation en el contenedor authToggleText
+  authToggleText.addEventListener("click", (e) => {
+    if (e.target.classList.contains("toggle-link")) {
+      e.preventDefault();
+      isRegisterMode = !isRegisterMode;
+      updateAuthToggleUI();
+      // Limpiar campos
+      authUsername.value = "";
+      authPassword.value = "";
+      authEmail.value = "";
+      authMessage.textContent = "";
     }
   });
+
+  // Inicializar la UI del toggle (convierte el HTML inicial)
+  updateAuthToggleUI();
 
   // Logout
   logoutBtn.addEventListener("click", () => {
@@ -259,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, email, password }),
         });
-        
+
         const data = await res.json();
         if (res.ok) {
           authMessage.style.color = "#28a745";
@@ -269,11 +286,24 @@ document.addEventListener("DOMContentLoaded", () => {
           authSubtitle.textContent = "Accede al chatbot de consulta histórica";
           authEmail.classList.add("hidden");
           authSubmit.textContent = "Entrar";
-          authToggleText.innerHTML = '¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>';
+          authToggleText.innerHTML =
+            '¿No tienes cuenta? <a href=\"#\" id=\"toggle-auth\">Regístrate</a>';
           authUsername.value = "";
           authPassword.value = "";
         } else {
-          authMessage.textContent = data.detail || "Error en el registro.";
+          // Mensajes claros según el error
+          let msg = data.detail || "Error en el registro.";
+          if (msg.includes("usuario ya existe")) {
+            msg = "El nombre de usuario ya está en uso.";
+          } else if (msg.includes("email ya está registrado")) {
+            msg = "El email ya está registrado.";
+          } else if (msg.includes("Completa todos los campos")) {
+            msg = "Por favor, completa todos los campos.";
+          } else if (msg.includes("no es válido")) {
+            msg = "El email no es válido.";
+          }
+          authMessage.style.color = "#dc3545";
+          authMessage.textContent = msg;
         }
       } else {
         // Login
@@ -282,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
         });
-        
+
         const data = await res.json();
         if (res.ok && data.token) {
           saveSession(data.token, username, data.user_id);
@@ -302,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   chatForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    
+
     const message = userInput.value.trim();
     if (!message || !currentToken) return;
 
@@ -346,7 +376,10 @@ document.addEventListener("DOMContentLoaded", () => {
         addMessage(`❌ Error: ${data.response}`, "bot");
       }
     } catch (error) {
-      addMessage("❌ Error de conexión. Asegúrate de que FastAPI esté corriendo en http://127.0.0.1:8000", "bot");
+      addMessage(
+        "❌ Error de conexión. Asegúrate de que FastAPI esté corriendo en http://127.0.0.1:8000",
+        "bot",
+      );
     } finally {
       toggleLoading(false);
       checkApiStatus();

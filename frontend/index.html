@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -7,18 +7,28 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    
     <!-- ==============================
          PAGINA DE LOGIN/REGISTRO
          ============================== -->
     <div class="auth-container hidden" id="auth-page">
-      
       <!-- Columna Izquierda: Información -->
       <div class="auth-sidebar">
-        <div class="university-icon"><img src="images/logo_UO.jpg" alt="Universidad de Oriente" style="width: 150px; height: 150px; border-radius: 50%; margin-bottom: 20px; object-fit: cover;"></div>
+        <div class="university-icon">
+          <img
+            src="images/logo_UO.jpg"
+            alt="Universidad de Oriente"
+            style="
+              width: 150px;
+              height: 150px;
+              border-radius: 50%;
+              margin-bottom: 20px;
+              object-fit: cover;
+            "
+          />
+        </div>
         <h1>UNIVERSIDAD DE ORIENTE</h1>
         <h2>Centro de Consulta de Documentos Históricos</h2>
-        
+
         <div class="auth-features">
           <div class="auth-feature">
             <span>📚</span>
@@ -34,20 +44,90 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Columna Derecha: Formulario -->
       <div class="auth-form-container">
         <div class="auth-form-box">
           <h2 id="auth-title">Iniciar sesión</h2>
-          <p class="subtitle" id="auth-subtitle">Accede al chatbot de consulta histórica</p>
-          
+          <p class="subtitle" id="auth-subtitle">
+            Accede al chatbot de consulta histórica
+          </p>
+
           <form id="auth-form">
-            <input type="text" id="auth-username" placeholder="Usuario" required />
-            <input type="email" id="auth-email" placeholder="Correo electrónico" class="hidden" />
-            <input type="password" id="auth-password" placeholder="Contraseña" required />
+            <input
+              type="text"
+              id="auth-username"
+              placeholder="Usuario"
+              required
+            />
+            <input
+              type="email"
+              id="auth-email"
+              placeholder="Correo electrónico"
+              class="hidden"
+            />
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="auth-password"
+                placeholder="Contraseña"
+                required
+              />
+              <span
+                id="toggle-password-visibility"
+                class="password-toggle"
+                tabindex="0"
+                aria-label="Mostrar u ocultar contraseña"
+              >
+                <svg
+                  id="eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  style="display: inline"
+                >
+                  <path
+                    stroke="#666"
+                    stroke-width="2"
+                    d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="#666"
+                    stroke-width="2"
+                  />
+                </svg>
+                <svg
+                  id="eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  style="display: none"
+                >
+                  <path
+                    stroke="#666"
+                    stroke-width="2"
+                    d="M3 3l18 18M1 12s4-7 11-7c2.5 0 4.7.7 6.5 1.8M23 12s-4 7-11 7c-2.5 0-4.7-.7-6.5-1.8"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="#666"
+                    stroke-width="2"
+                  />
+                </svg>
+              </span>
+            </div>
             <button type="submit" id="auth-submit">Entrar</button>
           </form>
-          
+
           <p class="auth-toggle" id="auth-toggle-text">
             ¿No tienes cuenta? <a href="#" id="toggle-auth">Regístrate</a>
           </p>
@@ -60,14 +140,15 @@
          PAGINA PRINCIPAL (CHAT)
          ============================== -->
     <div class="app-container hidden" id="chat-page">
-      
       <!-- Header -->
       <header class="app-header">
         <div class="header-banda-roja"></div>
         <div class="header-main">
           <div>
             <div class="header-title">UNIVERSIDAD DE ORIENTE</div>
-            <div class="header-subtitle">Chatbot Agentic RAG - Consulta Histórica</div>
+            <div class="header-subtitle">
+              Chatbot Agentic RAG - Consulta Histórica
+            </div>
           </div>
           <div class="header-actions">
             <span class="user-welcome" id="user-welcome"></span>
@@ -75,18 +156,28 @@
           </div>
         </div>
       </header>
-      
+
       <!-- Contenido Principal -->
       <div class="main-content">
-        
         <!-- Panel Izquierdo: Información -->
         <aside class="sidebar">
           <div class="sidebar-logo">
-            <div class="university-icon"><img src="images/logo_UO.jpg" alt="Universidad de Oriente" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"></div>
+            <div class="university-icon">
+              <img
+                src="images/logo_UO.jpg"
+                alt="Universidad de Oriente"
+                style="
+                  width: 80px;
+                  height: 80px;
+                  border-radius: 50%;
+                  object-fit: cover;
+                "
+              />
+            </div>
             <h2>Universidad de Oriente</h2>
             <p>Consulta de documentos históricos</p>
           </div>
-          
+
           <div class="sidebar-features">
             <div class="feature-item">
               <div class="feature-icon">📚</div>
@@ -110,7 +201,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="sidebar-status">
             <div class="status-indicator">
               <span class="status-dot" id="status-dot"></span>
@@ -118,18 +209,27 @@
             </div>
           </div>
         </aside>
-        
+
         <!-- Panel Derecho: Chat -->
         <main class="chat-area">
           <div class="chat-messages" id="chat-messages">
             <div class="message bot-message">
-              <p>¡Bienvenido al Chatbot de la Universidad de Oriente!</p>
-              <p>Soy tu asistente para consultas sobre los documentos históricos. ¿En qué puedo ayudarte hoy?</p>
+              <p>
+                ¡Bienvenido al Centro de Consultas de la Universidad de Oriente!
+              <br>  Soy tu asistente para consultas sobre los documentos históricos
+                perteneciente a la Universidad de Oriente. <br />
+                ¿En qué puedo ayudarte hoy?
+              </p>
             </div>
           </div>
-          
+
           <form class="chat-input-area" id="chat-form">
-            <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre los documentos históricos..." required />
+            <input
+              type="text"
+              id="user-input"
+              placeholder="Escribe tu pregunta sobre los documentos históricos..."
+              required
+            />
             <button type="submit" id="send-button">
               <span>Enviar</span>
             </button>

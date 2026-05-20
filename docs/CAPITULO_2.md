@@ -57,7 +57,7 @@ El grafo de estados implementado en el sistema cuenta con tres nodos principales
 
 ### 2.2.1. Pipeline de Ingestión de Documentos PDF
 
-El sistema implementa un pipeline modularizado de ingestión de documentos que permite procesar archivos PDF de manera eficiente y escalable. Este pipeline se encuentra encapsulado en la clase PDFIngestor, которая maneja todas las etapas desde la carga del documento hasta la indexación en la base de datos vectorial.
+El sistema implementa un pipeline modularizado de ingestión de documentos que permite procesar archivos PDF de manera eficiente y escalable. Este pipeline se encuentra encapsulado en la clase PDFIngestor, que maneja todas las etapas desde la carga del documento hasta la indexación en la base de datos vectorial.
 
 La primera etapa del pipeline consiste en la carga del documento mediante PyPDFLoader, una herramienta de LangChain que permite extraer el texto contenido en las páginas del PDF. Este método resulta efectivo para documentos que contienen texto digitalizable, es decir, documentos que fueron creados digitalmente o escaneados con OCR previo. La extracción mantiene la información de página, fundamental para la posterior citación de fuentes.
 
@@ -69,7 +69,9 @@ Para documentos escaneados o imágenes que no contienen texto digitalizable, el 
 
 El proceso de OCR codifica la imagen en formato base64 y la envía a la API de Mistral, que devuelve el texto reconocido junto con metadatos adicionales. Este enfoque permite manejar diversos formatos de imagen (JPG, JPEG, PNG, TIFF, BMP, GIF, WEBP) y mantiene una alta precisión en el reconocimiento de caracteres, característica fundamental considerando la calidad variable de los documentos históricos.
 
-El sistema implementa una estrategia de fallback automático: al procesar un PDF, primero intenta extraer el texto con PyPDFLoader; si el resultado contiene menos de 500 caracteres (indicando probable ausencia de texto digitalizable), automáticamente activa el proceso de OCR para garantizar la extracción del contenido.
+El sistema implementa OCR (Optical Character Recognition) utilizando la API de Mistral AI (modelo mistral-ocr-latest). Esta funcionalidad se encuentra implementada en el módulo ingest_ocr.py, que procesa imágenes individuales, y en ingest_ocr_folder.py, que permite procesar masivamente carpetas completas de imágenes.
+
+El proceso de OCR codifica la imagen en formato base64 y la envía a la API de Mistral, que devuelve el texto reconocido junto con metadatos adicionales. Este enfoque permite manejar diversos formatos de imagen (JPG, JPEG, PNG, TIFF, BMP, GIF, WEBP) y mantiene una alta precisión en el reconocimiento de caracteres, característica fundamental considerando la calidad variable de los documentos históricos.
 
 ### 2.2.3. Enriquecimiento de Metadatos y Limpieza de OCR
 
@@ -170,7 +172,7 @@ El formato de citación sigue el estándar académico: [Nombre del Archivo] (pá
 
 ### 2.6.1. Estado Actual de la Soberanía
 
-El sistema actual mantiene dependencia del modelo de lenguaje Gemini de Google (gemma-3-4b-it) y del servicio de OCR de Mistral AI. Esta configuración fue seleccionada por su facilidad de integración y calidad de resultados durante la fase de desarrollo. Sin embargo, la arquitectura está diseñada para permitir la transición a servicios locales cuando sea necesario.
+El sistema actual mantiene dependencia del modelo de lenguaje Gemini de Google (gemma-4-31b-it) y del servicio de OCR de Mistral AI. Esta configuración fue seleccionada por su facilidad de integración y calidad de resultados durante la fase de desarrollo. Sin embargo, la arquitectura está diseñada para permitir la transición a servicios locales cuando sea necesario.
 
 La Etapa 4 del plan de desarrollo (actualmente pendiente) contempla la implementación de Ollama para ejecutar modelos de lenguaje localmente (Llama 3 o Mistral), eliminando la dependencia de servicios externos y garantizando el funcionamiento del sistema sin conexión a internet. Esta característica es fundamental para el despliegue en los servidores de la Universidad de Oriente, donde la conectividad puede ser limitada o intermitente.
 
