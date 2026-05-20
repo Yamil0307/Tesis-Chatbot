@@ -396,7 +396,8 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleLoading(true);
 
     // Generar ID único para esta consulta
-    currentQueryId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    currentQueryId =
+      Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
     try {
       const response = await fetch(API_CHAT, {
@@ -429,13 +430,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Ignorar respuesta si esta consulta fue cancelada
       if (data.query_id && data.query_id === lastCancelledQueryId) {
-        console.log(`ℹ️ Respuesta ignorada - Query ID recibido: ${data.query_id}, Last Cancelled: ${lastCancelledQueryId}`);
+        console.log(
+          `ℹ️ Respuesta ignorada - Query ID recibido: ${data.query_id}, Last Cancelled: ${lastCancelledQueryId}`,
+        );
         toggleLoading(false);
         checkApiStatus();
         return;
       }
 
-      console.log(`✅ Aceptando respuesta - Query ID: ${data.query_id}, Current Query: ${currentQueryId}`);
+      console.log(
+        `✅ Aceptando respuesta - Query ID: ${data.query_id}, Current Query: ${currentQueryId}`,
+      );
 
       // Mostrar respuesta
       if (data.status === "success") {
