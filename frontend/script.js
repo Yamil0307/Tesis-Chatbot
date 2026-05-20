@@ -59,6 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentUser = null;
   let currentUserId = null;
   let isRegisterMode = false;
+  let isQueryRunning = false;
+  let currentQueryId = null;
+  let lastCancelledQueryId = null;
 
   // ============================================
   // FUNCIONES DE SESIÓN
@@ -78,6 +81,8 @@ document.addEventListener("DOMContentLoaded", () => {
     currentUser = null;
     currentUserId = null;
     currentThreadId = null;
+    currentQueryId = null;
+    lastCancelledQueryId = null;
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("userId");
@@ -115,12 +120,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function toggleLoading(isLoading) {
     if (isLoading) {
-      sendButton.disabled = true;
-      sendButton.innerHTML = '<div class="spinner"></div>';
+      isQueryRunning = true;
+      sendButton.disabled = false; // Permitir hacer clic para cancelar
+      sendButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="4" y="4" width="16" height="16" rx="2"/>
+        </svg>
+      `;
+      sendButton.id = "cancel-button";
       apiStatusSpan.textContent = "Procesando...";
     } else {
+      isQueryRunning = false;
       sendButton.disabled = false;
       sendButton.innerHTML = "<span>Enviar</span>";
+      sendButton.id = "send-button";
       apiStatusSpan.textContent = "Listo";
     }
     userInput.disabled = isLoading;
@@ -142,7 +155,37 @@ document.addEventListener("DOMContentLoaded", () => {
       statusDot.classList.remove("conectado");
     }
   }
+  async function cancelQuery() {
+    if (!currentThreadId || !currentToken) {
+      addMessage("❌ No hay consulta en proceso para cancelar.", "bot");
+      return;
+    }
 
+    try {
+      const response = await fetch(`${API_BASE}/cancel/${currentThreadId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        // Marcar esta consulta como cancelada para ignorar respuestas futuras
+        lastCancelledQueryId = currentQueryId;
+        console.log(`🛑 Cancelada consulta ID: ${lastCancelledQueryId}`);
+        addMessage("⏹️ Consulta cancelada por el usuario.", "bot");
+        isQueryRunning = false;
+        toggleLoading(false);
+      } else {
+        addMessage("❌ No se pudo cancelar la consulta.", "bot");
+      }
+    } catch (error) {
+      console.error("Error al cancelar:", error);
+      addMessage("❌ Error al cancelar la consulta.", "bot");
+    }
+  }
   // ============================================
   // RENDERIZADO DE MENSAJES
   // ============================================
@@ -333,13 +376,27 @@ document.addEventListener("DOMContentLoaded", () => {
   chatForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
+    // Si hay una consulta en proceso y el usuario hace clic, cancelar
+    if (isQueryRunning && currentThreadId) {
+      await cancelQuery();
+      return;
+    }
+
     const message = userInput.value.trim();
     if (!message || !currentToken) return;
+
+    // Resetear flag de último cancelado si es una nueva sesión
+    if (!currentThreadId) {
+      lastCancelledQueryId = null;
+    }
 
     // Agregar mensaje del usuario
     addMessage(message, "user");
     userInput.value = "";
     toggleLoading(true);
+
+    // Generar ID único para esta consulta
+    currentQueryId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
     try {
       const response = await fetch(API_CHAT, {
@@ -351,6 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({
           user_input: message,
           thread_id: currentThreadId,
+          query_id: currentQueryId,
         }),
       });
 
@@ -368,6 +426,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.thread_id && !currentThreadId) {
         saveSessionId(data.thread_id);
       }
+
+      // Ignorar respuesta si esta consulta fue cancelada
+      if (data.query_id && data.query_id === lastCancelledQueryId) {
+        console.log(`ℹ️ Respuesta ignorada - Query ID recibido: ${data.query_id}, Last Cancelled: ${lastCancelledQueryId}`);
+        toggleLoading(false);
+        checkApiStatus();
+        return;
+      }
+
+      console.log(`✅ Aceptando respuesta - Query ID: ${data.query_id}, Current Query: ${currentQueryId}`);
 
       // Mostrar respuesta
       if (data.status === "success") {

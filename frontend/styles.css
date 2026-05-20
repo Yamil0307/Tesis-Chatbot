@@ -356,6 +356,34 @@ body {
   cursor: not-allowed;
 }
 
+#cancel-button {
+  background: var(--uo-rojo);
+  color: var(--uo-blanco);
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+}
+
+#cancel-button:hover {
+  background: var(--uo-rojo-oscuro);
+  transform: scale(1.05);
+}
+
+#cancel-button svg {
+  width: 24px;
+  height: 24px;
+}
+
 /* --- Fuentes Dropdown --- */
 .sources-dropdown {
   margin-top: 12px;

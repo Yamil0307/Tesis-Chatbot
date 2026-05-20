@@ -56,6 +56,7 @@ class LoginRequest(BaseModel):
 class ChatRequest(BaseModel):
     user_input: str
     thread_id: Optional[str] = None
+    query_id: Optional[str] = None
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> int:
     token = credentials.credentials
@@ -96,6 +97,18 @@ def login(req: LoginRequest):
     token = auth_manager.create_access_token(user_id)
     return {"status": "success", "user_id": user_id, "token": token}
 
+@app_fastapi.post("/cancel/{thread_id}")
+def cancel_query(thread_id: str, user_id: int = Depends(get_current_user)) -> Dict[str, Any]:
+    """
+    Cancela una consulta en proceso marcando el thread como cancelado.
+    El agente chequeará este estado en cada iteración y detendrá el procesamiento.
+    """
+    memory_mgr = get_memory_manager()
+    success = memory_mgr.cancel_thread(thread_id)
+    if success:
+        return {"status": "success", "message": "Consulta cancelada"}
+    else:
+        raise HTTPException(status_code=500, detail="Error al cancelar la consulta")
 
 # --- 5. RUTA PRINCIPAL DE CHAT (PROTEGIDA) ---
 @app_fastapi.post("/chat")
@@ -111,6 +124,8 @@ def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> 
         thread_id = memory_mgr.create_session(str(user_id))
     else:
         thread_id = request.thread_id
+        # Resetear flag de cancelación al iniciar nueva consulta
+        memory_mgr.reset_cancellation(thread_id)
     # Obtener configuración para el thread
     config = memory_mgr.get_config_for_thread(thread_id)
     # CRÍTICO: Recuperar el estado anterior del checkpointer
@@ -124,13 +139,17 @@ def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> 
         initial_state = {
             "input": user_prompt,
             "chat_history": limited_history,
-            "context": ""
+            "context": "",
+            "thread_id": thread_id,
+            "query_id": request.query_id
         }
     else:
         initial_state = {
             "input": user_prompt,
             "chat_history": [],
-            "context": ""
+            "context": "",
+            "thread_id": thread_id,
+            "query_id": request.query_id
         }
     try:
         final_state = app.invoke(initial_state, config=config)
@@ -139,6 +158,7 @@ def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> 
             "status": "success",
             "response": agent_response,
             "thread_id": thread_id,
+            "query_id": request.query_id,
             "agent_used_tool": True if final_state['context'] else False
         }
     except Exception as e:

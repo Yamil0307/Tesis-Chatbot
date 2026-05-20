@@ -39,8 +39,8 @@ class MemoryManager:
         """
         Crea una nueva sesión de conversación y la asocia al usuario.
         """
-        thread_id = f"user_{user_id}_{self.session_counter}"
-        self.session_counter += 1
+        # Usar UUID para garantizar unicidad
+        thread_id = f"user_{user_id}_{uuid.uuid4().hex[:8]}"
         # Persistir thread_id y user_id en tabla threads
         try:
             conn = sqlite3.connect(self.db_path)
@@ -50,9 +50,21 @@ class MemoryManager:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id TEXT NOT NULL,
                     thread_id TEXT UNIQUE NOT NULL,
+                    cancelled BOOLEAN DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            
+            # Migración: Agregar columna 'cancelled' si no existe
+            cursor.execute("PRAGMA table_info(threads)")
+            columns = [col[1] for col in cursor.fetchall()]
+            if "cancelled" not in columns:
+                try:
+                    cursor.execute("ALTER TABLE threads ADD COLUMN cancelled BOOLEAN DEFAULT 0")
+                    print("[MemoryManager] ✅ Migración: Columna 'cancelled' agregada a tabla 'threads'")
+                except Exception as mig_e:
+                    print(f"[MemoryManager] Nota sobre migración: {mig_e}")
+            
             cursor.execute(
                 "INSERT INTO threads (user_id, thread_id) VALUES (?, ?)",
                 (user_id, thread_id)
@@ -143,6 +155,80 @@ class MemoryManager:
         except Exception as e:
             print(f"Error recuperando estado anterior: {e}")
             return None
+    
+    def cancel_thread(self, thread_id: str) -> bool:
+        """
+        Marca un thread como cancelado.
+        
+        Args:
+            thread_id: Identificador del thread a cancelar
+            
+        Returns:
+            bool: True si se canceló exitosamente, False si hubo error
+        """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE threads SET cancelled = 1 WHERE thread_id = ?",
+                (thread_id,)
+            )
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"[MemoryManager] Error cancelando thread: {e}")
+            return False
+    
+    def reset_cancellation(self, thread_id: str) -> bool:
+        """
+        Resetea el flag de cancelación de un thread para permitir nuevas consultas.
+        
+        Args:
+            thread_id: Identificador del thread a resetear
+            
+        Returns:
+            bool: True si se reseteó exitosamente, False si hubo error
+        """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE threads SET cancelled = 0 WHERE thread_id = ?",
+                (thread_id,)
+            )
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"[MemoryManager] Error reseteando cancelación: {e}")
+            return False
+    
+    def is_cancelled(self, thread_id: str) -> bool:
+        """
+        Chequea si un thread ha sido marcado como cancelado.
+        
+        Args:
+            thread_id: Identificador del thread
+            
+        Returns:
+            bool: True si está cancelado, False si no
+        """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT cancelled FROM threads WHERE thread_id = ?",
+                (thread_id,)
+            )
+            result = cursor.fetchone()
+            conn.close()
+            if result:
+                return bool(result[0])
+            return False
+        except Exception as e:
+            print(f"[MemoryManager] Error chequeando cancelación: {e}")
+            return False
     
     def get_saver(self):
         """

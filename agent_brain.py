@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
-from typing import List, Dict, Any, TypedDict
+from typing import List, Dict, Any, TypedDict, Optional
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
 
@@ -27,6 +27,8 @@ class AgentState(TypedDict):
     chat_history: List[Any]
     context: str 
     search_query: str 
+    thread_id: str 
+    query_id: Optional[str]
 
 # --- NODOS DEL GRAFO ---
 
@@ -99,6 +101,14 @@ def run_agent(state: AgentState) -> Dict[str, Any]:
 
 # NODO 3: Generador (Auditor Estricto)
 def generate_response(state: AgentState) -> Dict[str, Any]:
+    # Chequear si la consulta fue cancelada
+    thread_id = state.get("thread_id", "")
+    memory_mgr = get_memory_manager()
+    if thread_id and memory_mgr.is_cancelled(thread_id):
+        # No agregar nada al historial si fue cancelado
+        # El frontend ya mostró el mensaje de cancelación
+        return {"chat_history": state["chat_history"]}
+    
     context = state["context"]
     input_message = state["input"] # Usamos la original para responder
     current_chat_history = state["chat_history"]
