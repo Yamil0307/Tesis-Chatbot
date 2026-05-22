@@ -6,11 +6,18 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from typing import Dict, Any, Optional
 from auth_manager import AuthManager
-
+from langfuse import Langfuse
+import asyncio
+from langchain_google_genai import ChatGoogleGenerativeAI
+import json
+import uuid
 
 # Importamos la lógica del agente que ya funciona
 from agent_brain import app # 'app' es el grafo compilado de LangGraph
 from memory_manager import get_memory_manager
+from langfuse_evaluator import evaluate_rag_response
+
+langfuse = Langfuse()  # Cliente global para enviar scores
 
 # --- 1. CONFIGURACIÓN DE FASTAPI ---
 app_fastapi = FastAPI(
@@ -112,7 +119,7 @@ def cancel_query(thread_id: str, user_id: int = Depends(get_current_user)) -> Di
 
 # --- 5. RUTA PRINCIPAL DE CHAT (PROTEGIDA) ---
 @app_fastapi.post("/chat")
-def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> Dict[str, Any]:
+async def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> Dict[str, Any]:
     """
     Endpoint para enviar una pregunta al Agente LangGraph con memoria persistente.
     Soporta thread_id para mantener conversaciones entre sesiones.
@@ -141,7 +148,8 @@ def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> 
             "chat_history": limited_history,
             "context": "",
             "thread_id": thread_id,
-            "query_id": request.query_id
+            "query_id": request.query_id,
+            "retrieved_docs": []
         }
     else:
         initial_state = {
@@ -149,11 +157,36 @@ def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> 
             "chat_history": [],
             "context": "",
             "thread_id": thread_id,
-            "query_id": request.query_id
+            "query_id": request.query_id,
+            "retrieved_docs": []
         }
+
+    # ── LANGFUSE: Generar trace_id único ──
+    trace_id = str(uuid.uuid4())
+    
     try:
         final_state = app.invoke(initial_state, config=config)
         agent_response = final_state['chat_history'][-1].content
+
+        # ── LANGFUSE: Lanzar evaluación en background ──
+        retrieved_docs = final_state.get("retrieved_docs", [])
+
+        # Construir contexto plano para el evaluador
+        # retrieved_docs ahora son diccionarios: {"page_content": ..., "metadata": ...}
+        context_text = "\n".join([
+            doc.get("page_content", "") for doc in retrieved_docs
+        ]) if retrieved_docs else ""
+
+        # Lanzar evaluaciones sin bloquear la respuesta al usuario
+        asyncio.create_task(
+            evaluate_rag_response(
+                trace_id=trace_id,
+                query=user_prompt,
+                context=context_text,
+                answer=agent_response
+            )
+        )
+
         return {
             "status": "success",
             "response": agent_response,
@@ -165,7 +198,7 @@ def run_chat(request: ChatRequest, user_id: int = Depends(get_current_user)) -> 
         print(f"Error durante la ejecución del agente: {e}")
         return {
             "status": "error",
-            "response": f"Lo siento, ocurrió un error en el servidor. Intente de nuevo.",
+            "response": "Lo siento, ocurrió un error en el servidor. Intente de nuevo.",
             "thread_id": thread_id,
             "error_detail": str(e)
         }

@@ -6,7 +6,7 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
 
 # --- IMPORTAR GESTORES ---
-from rag_manager import get_rag_manager
+from rag_manager import get_rag_manager, extract_names_from_query, find_fuzzy_name_in_docs
 from metadata_handler import MetadataHandler
 from memory_manager import get_memory_manager
 
@@ -29,6 +29,8 @@ class AgentState(TypedDict):
     search_query: str 
     thread_id: str 
     query_id: Optional[str]
+    retrieved_docs: Optional[List[Any]]
+    fuzzy_name_match: Optional[str]  # ← Nombre real encontrado en docs via fuzzy matching
 
 # --- NODOS DEL GRAFO ---
 
@@ -87,16 +89,48 @@ def run_agent(state: AgentState) -> Dict[str, Any]:
     
     if not docs:
         context = "[SIN RESULTADOS]"
+        return {"context": context, "retrieved_docs": [], "fuzzy_name_match": None}
     else:
         # Sin ordenamiento por página - usamos los 8 documentos tal cual vienen del retrieval
         # Para registros administrativos no aplica la lógica de "portadas"
         docs_ordenados = docs[:8]
         
+        # ── FUZZY MATCHING: buscar nombre real en los docs ──
+        fuzzy_match = None
+        query_names = extract_names_from_query(query_to_search)
+        
+        for name in query_names:
+            match = find_fuzzy_name_in_docs(name, docs_ordenados, threshold=75)
+            if match:
+                fuzzy_match = match
+                print(f"✅ [FUZZY] Nombre corregido para el generador: '{match}'")
+                break
+        
         context_text = rag_mgr.format_context(docs_ordenados)
         sources_list = MetadataHandler.format_source_list(docs_ordenados)
         context = f"{context_text}\n\n{sources_list}"
-    
-    return {"context": context}
+        
+        # Convertir docs a diccionarios serializables (evitar msgpack error con numpy types)
+        def serialize_value(val):
+            """Convierte valores numpy a Python nativos"""
+            import numpy as np
+            if isinstance(val, (np.integer, np.floating)):
+                return float(val) if isinstance(val, np.floating) else int(val)
+            elif isinstance(val, dict):
+                return {k: serialize_value(v) for k, v in val.items()}
+            elif isinstance(val, (list, tuple)):
+                return [serialize_value(v) for v in val]
+            return val
+        
+        docs_dict = [
+            {
+                "page_content": doc.page_content,
+                "metadata": serialize_value(doc.metadata) if doc.metadata else {}
+            }
+            for doc in docs_ordenados
+        ]
+        
+        return {"context": context, "retrieved_docs": docs_dict, "fuzzy_name_match": fuzzy_match}
 
 
 # NODO 3: Generador (Auditor Estricto)
@@ -112,6 +146,7 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
     context = state["context"]
     input_message = state["input"] # Usamos la original para responder
     current_chat_history = state["chat_history"]
+    fuzzy_match = state.get("fuzzy_name_match")  # ← NUEVO: nombre corregido
     
     if context == "[SIN RESULTADOS]":
         return {
@@ -121,12 +156,25 @@ def generate_response(state: AgentState) -> Dict[str, Any]:
             ]
         }
 
+    # ── SECCIÓN FUZZY: agregar nota al prompt si hay match ──
+    fuzzy_note = ""
+    if fuzzy_match:
+        fuzzy_note = f"""
+NOTA IMPORTANTE SOBRE VARIACIÓN ORTOGRÁFICA:
+El usuario buscó un nombre que puede tener variación ortográfica menor debido al OCR de documentos manuscritos históricos.
+Se encontró en los documentos el nombre: "{fuzzy_match}"
+Este nombre es EQUIVALENTE al nombre buscado — son la misma persona.
+Usa la información de "{fuzzy_match}" para responder la pregunta del usuario.
+NO rechaces la respuesta por diferencia ortográfica menor si el nombre encontrado es muy similar al buscado.
+
+"""
+
     # System prompt exacto proporcionado por el usuario
     system_prompt = f"""Eres un EXTRACTOR DE INFORMACIÓN DE DOCUMENTOS HISTÓRICOS de la Universidad de Oriente.
 
 Tu única fuente de verdad es el CONTEXTO proporcionado. No puedes usar conocimiento externo.
 
-OBJETIVO:
+{fuzzy_note}OBJETIVO:
 Extraer información EXACTA y verificable de los documentos.
 
 REGLAS CRÍTICAS:
@@ -158,6 +206,14 @@ Solo responde "No se encontró información suficiente..." si:
 - El nombre NO aparece en el contexto, O
 - La información solicitada específicamente NO está en el documento
 NO uses esta respuesta como "por si acaso". Úsala solo si realmente no está la información
+
+6. INFORMACIÓN BREVE ES VÁLIDA
+- Los documentos históricos y administrativos a menudo tienen información específica y breve
+- Si el documento está ENFOCADO en UN TEMA (ej: calificaciones de una persona, datos de un expediente)
+- Y encontraste la información exacta que se pregunta, DEBES RESPONDER aunque sea breve
+- Ejemplo: Si pregunta "¿Cuál fue la calificación?" y el documento solo dice "85", responde "85"
+- NO esperes "más información" - el documento solo contiene lo relevante para ese tema
+- Confía en que si la información está en el contexto, es la información completa que existe
 
 FORMATO DE RESPUESTA:
 

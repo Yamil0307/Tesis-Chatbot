@@ -11,11 +11,13 @@ Objetivo: Optimizar la recuperación para encontrar datos específicos.
 """
 
 import os
-from typing import List, Tuple
+import re
+from typing import List, Tuple, Optional
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
+from rapidfuzz import fuzz, process
 
 # --- CONFIGURACIÓN ---
 load_dotenv()
@@ -193,6 +195,86 @@ class RAGManager:
         docs = self.search(query, k)
         context = self.format_context(docs)
         return context, docs
+
+
+# --- FUZZY MATCHING PARA RESOLUCIÓN DE ENTIDADES ---
+
+def extract_names_from_query(query: str) -> List[str]:
+    """
+    Extrae posibles nombres propios de la query.
+    Heurística: palabras capitalizadas consecutivas.
+    
+    Ejemplo: "¿Qué nota obtuvo Carlos Manuel Puig Crevets?" → ["Carlos Manuel Puig Crevets"]
+    """
+    tokens = query.split()
+    names = []
+    current_name = []
+    
+    for token in tokens:
+        # Limpiar puntuación del token
+        clean = re.sub(r'[¿?¡!,.]', '', token)
+        if clean and clean[0].isupper() and len(clean) > 2:
+            current_name.append(clean)
+        else:
+            if len(current_name) >= 2:  # Mínimo nombre + apellido
+                names.append(" ".join(current_name))
+            current_name = []
+    
+    if len(current_name) >= 2:
+        names.append(" ".join(current_name))
+    
+    return names
+
+
+def find_fuzzy_name_in_docs(query_name: str, docs: List[Document], threshold: int = 75) -> Optional[str]:
+    """
+    Busca en los documentos el nombre más similar al de la query.
+    Útil para resolver variaciones ortográficas debidas a OCR.
+    
+    Args:
+        query_name: Nombre que escribió el usuario (ej: "Puig Crevets")
+        docs: Lista de documentos recuperados
+        threshold: Similitud mínima aceptable (0-100). 75 es conservador.
+    
+    Returns:
+        El nombre real encontrado en los docs, o None si no hay match suficiente.
+    
+    Ejemplo:
+        query_name = "Puig Crevets"
+        En el doc encontramos: "Puig Creuets"
+        token_sort_ratio = 96% → retorna "Puig Creuets"
+    """
+    if not docs:
+        return None
+    
+    # Extraer todos los posibles nombres de los documentos
+    # Buscamos secuencias de 2-4 palabras capitalizadas (nombres propios)
+    all_candidates = []
+    
+    for doc in docs:
+        content = doc.page_content if hasattr(doc, 'page_content') else doc.get('page_content', '')
+        # Encontrar secuencias de palabras capitalizadas (nombres propios)
+        # Patrón: palabra con mayúscula inicial, repetido 1-3 veces
+        matches = re.findall(r'(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s){1,3}[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+', content)
+        all_candidates.extend(matches)
+    
+    if not all_candidates:
+        return None
+    
+    # Buscar el más similar usando token_sort_ratio (robusto a orden de palabras)
+    result = process.extractOne(
+        query_name,
+        all_candidates,
+        scorer=fuzz.token_sort_ratio,
+        score_cutoff=threshold
+    )
+    
+    if result:
+        matched_name, score, _ = result
+        print(f"🔍 [FUZZY] '{query_name}' → '{matched_name}' (similitud: {score}%)")
+        return matched_name
+    
+    return None
 
 
 # --- INSTANCIA GLOBAL (Lazy Singleton) ---
