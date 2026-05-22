@@ -137,6 +137,108 @@
     </div>
 
     <!-- ==============================
+         PAGINA DE INICIO (HOME)
+         ============================== -->
+    <div class="app-container hidden" id="home-page">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-banda-roja"></div>
+        <div class="header-main">
+          <div class="header-logo-section">
+            <img
+              src="images/logo_UO.jpg"
+              alt="Universidad de Oriente"
+              class="header-logo-img"
+            />
+            <div class="header-logo-text">
+              <div class="header-title">Universidad de Oriente</div>
+              <div class="header-subtitle">Sistema de Consulta Histórica</div>
+            </div>
+          </div>
+          <div class="header-actions">
+            <span class="user-welcome" id="user-welcome-home"></span>
+            <a href="#" class="header-link" id="go-to-chat-link">Chat →</a>
+            <button class="logout-btn" id="logout-btn-home">
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Contenido Principal - Una sola columna -->
+      <div class="main-content-home">
+        <!-- Panel Principal: Contenido -->
+        <main class="home-content">
+          <div class="home-welcome">
+            <h1>¡Bienvenido al Centro de Consultas Históricas!</h1>
+            <p class="welcome-subtitle">
+              Tu asistente inteligente para acceder a información de la
+              Universidad de Oriente
+            </p>
+          </div>
+
+          <div class="home-section">
+            <h2>¿Qué puedo hacer por ti?</h2>
+            <div class="home-features-grid">
+              <div class="home-feature-card">
+                <div class="home-card-icon">📚</div>
+                <h3>Consulta de Documentos</h3>
+                <p>Accede a información histórica verificada</p>
+              </div>
+              <div class="home-feature-card">
+                <div class="home-card-icon">🔍</div>
+                <h3>Búsqueda Inteligente</h3>
+                <p>Encuentra lo que necesitas con IA</p>
+              </div>
+              <div class="home-feature-card">
+                <div class="home-card-icon">📖</div>
+                <h3>Fuentes Verificadas</h3>
+                <p>Cada respuesta cite sus fuentes</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-section">
+            <h2>Cómo usar el sistema</h2>
+            <div class="home-instructions">
+              <div class="instruction-item">
+                <div class="instruction-number">1</div>
+                <div class="instruction-text">
+                  <h4>Formulariza tus preguntas en lenguaje natural</h4>
+                  <p>Ejemplo: "¿Qué calificación obtuvo Juan Pérez en 1995?"</p>
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-number">2</div>
+                <div class="instruction-text">
+                  <h4>Sé específico con nombres y fechas</h4>
+                  <p>Ejemplo: "Busca estudiantes de Ingeniería del año 2000"</p>
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-number">3</div>
+                <div class="instruction-text">
+                  <h4>Revisa las fuentes citadas</h4>
+                  <p>
+                    Cada respuesta incluye referencias a los documentos
+                    consultados
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-footer">
+            <p>¿Listo para comenzar? Haz clic en el botón de arriba o usa</p>
+            <button class="home-footer-cta" id="go-to-chat-btn">
+              Iniciar Consulta →
+            </button>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ==============================
          PAGINA PRINCIPAL (CHAT)
          ============================== -->
     <div class="app-container hidden" id="chat-page">
@@ -144,14 +246,20 @@
       <header class="app-header">
         <div class="header-banda-roja"></div>
         <div class="header-main">
-          <div>
-            <div class="header-title">UNIVERSIDAD DE ORIENTE</div>
-            <div class="header-subtitle">
-              Chatbot Agentic RAG - Consulta Histórica
+          <div class="header-logo-section">
+            <img
+              src="images/logo_UO.jpg"
+              alt="Universidad de Oriente"
+              class="header-logo-img"
+            />
+            <div class="header-logo-text">
+              <div class="header-title">Universidad de Oriente</div>
+              <div class="header-subtitle">Sistema de Consulta Histórica</div>
             </div>
           </div>
           <div class="header-actions">
             <span class="user-welcome" id="user-welcome"></span>
+            <a href="#" class="header-link" id="back-to-home-btn">← Inicio</a>
             <button class="logout-btn" id="logout-btn">Cerrar sesión</button>
           </div>
         </div>
@@ -179,26 +287,15 @@
           </div>
 
           <div class="sidebar-features">
-            <div class="feature-item">
-              <div class="feature-icon">📚</div>
-              <div class="feature-text">
-                <h4>Consulta de Documentos</h4>
-                <p>Accede a información histórica verificada</p>
-              </div>
+            <div class="chat-history-header">
+              <h3>📋 Historial de Consultas</h3>
+              <span class="coming-soon-badge">Próximamente</span>
             </div>
-            <div class="feature-item">
-              <div class="feature-icon">🔍</div>
-              <div class="feature-text">
-                <h4>Búsqueda Inteligente</h4>
-                <p>Encuentra lo que necesitas con IA</p>
-              </div>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">📖</div>
-              <div class="feature-text">
-                <h4>Fuentes Verificadas</h4>
-                <p>Cada respuesta cite sus fuentes</p>
-              </div>
+            <div class="chat-history-placeholder">
+              <p>Aquí aparecerán tus consultas anteriores</p>
+              <p class="placeholder-subtext">
+                Permitirá acceder rápidamente a tus búsquedas previas
+              </p>
             </div>
           </div>
 
@@ -216,7 +313,8 @@
             <div class="message bot-message">
               <p>
                 ¡Bienvenido al Centro de Consultas de la Universidad de Oriente!
-              <br>  Soy tu asistente para consultas sobre los documentos históricos
+                <br />
+                Soy tu asistente para consultas sobre los documentos históricos
                 perteneciente a la Universidad de Oriente. <br />
                 ¿En qué puedo ayudarte hoy?
               </p>

@@ -1,0 +1,27 @@
+El sistema actualmente funciona así:
+
+index.html tiene dos páginas: #auth-page (login) y #chat-page (chat), ambas con clase hidden
+script.js controla qué página mostrar según el estado de autenticación
+El flujo actual es: Login → Chat directamente
+
+Para implementar lo que pide tu tutora, la propuesta más limpia sería agregar una tercera "página" (#home-page) al mismo archivo HTML, siguiendo exactamente el patrón que ya tienes, sin romper nada existente.
+El nuevo flujo sería: Login → Inicio → Chat
+
+Propuesta de contenido para la página de inicio
+Dado que es un sistema universitario histórico, la página tendría:
+Encabezado de bienvenida con el nombre del usuario que acaba de entrar.
+Descripción breve del sistema — qué es, para qué sirve, sobre qué corpus opera.
+Tres tarjetas informativas con lo que el sistema puede hacer:
+
+Consulta de calificaciones y expedientes académicos
+Búsqueda de datos de matrícula histórica
+Identificación de información en documentos manuscritos digitalizados
+
+Sección de instrucciones de uso — cómo formular buenas preguntas (con ejemplos concretos tipo "¿Qué calificación obtuvo X en Y?").
+Botón prominente "Iniciar consulta" que lleva al chat.
+
+Cambios técnicos necesarios
+Solo tocarías 3 cosas:
+En index.html — agregar el bloque #home-page entre el auth y el chat, siguiendo el mismo patrón de hidden.
+En script.js — modificar la función que actualmente muestra #chat-page tras el login para que muestre #home-page en su lugar, y agregar un listener al botón "Iniciar consulta" que muestre #chat-page.
+En styles.css — agregar estilos para la nueva página (tarjetas, layout, etc.).

@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   // --- Elementos del DOM ---
   const authPage = document.getElementById("auth-page");
+  const homePage = document.getElementById("home-page");
   const chatPage = document.getElementById("chat-page");
   const authForm = document.getElementById("auth-form");
   const authTitle = document.getElementById("auth-title");
@@ -107,12 +108,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showChat() {
     authPage.classList.add("hidden");
+    homePage.classList.add("hidden");
     chatPage.classList.remove("hidden");
     userWelcome.textContent = `👤 ${currentUser}`;
   }
 
+  function showHome() {
+    authPage.classList.add("hidden");
+    homePage.classList.remove("hidden");
+    chatPage.classList.add("hidden");
+    document.getElementById("user-welcome-home").textContent =
+      `👤 ${currentUser}`;
+  }
+
   function showAuth() {
     authPage.classList.remove("hidden");
+    homePage.classList.add("hidden");
     chatPage.classList.add("hidden");
     authMessage.textContent = "";
     authPassword.value = "";
@@ -296,6 +307,40 @@ document.addEventListener("DOMContentLoaded", () => {
     showAuth();
   });
 
+  // Event listener para cerrar sesión desde home
+  const logoutBtnHome = document.getElementById("logout-btn-home");
+  if (logoutBtnHome) {
+    logoutBtnHome.addEventListener("click", () => {
+      clearSession();
+      showAuth();
+    });
+  }
+
+  // Event listener para botón "Iniciar Consulta"
+  const goToChatBtn = document.getElementById("go-to-chat-btn");
+  if (goToChatBtn) {
+    goToChatBtn.addEventListener("click", () => {
+      showChat();
+    });
+  }
+
+  // Event listener para volver al inicio desde el chat
+  const backToHomeBtn = document.getElementById("back-to-home-btn");
+  if (backToHomeBtn) {
+    backToHomeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      showHome();
+    });
+  }
+
+  // Event listener para ir al chat desde home (link en header)
+  const goToChatLink = document.getElementById("go-to-chat-link");
+  if (goToChatLink) {
+    goToChatLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      showChat();
+    });
+  }
   // Login / Registro
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -359,7 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         if (res.ok && data.token) {
           saveSession(data.token, username, data.user_id);
-          showChat();
+          showHome();
         } else {
           authMessage.textContent = data.detail || "Credenciales inválidas.";
         }
@@ -466,7 +511,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cargar sesión si existe
   loadSession();
   if (currentToken && currentUser) {
-    showChat();
+    showHome();
   } else {
     showAuth();
   }
